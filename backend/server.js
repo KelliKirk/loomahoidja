@@ -12,10 +12,18 @@ sequelize.sync({ alter: false })
   });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT);
+
+server.on('listening', () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ API available at http://localhost:${PORT}/api`);
   console.log(`✓ Health check: GET http://localhost:${PORT}/health`);
+});
+
+server.on('error', (err) => {
+  console.error(`✗ Failed to start server on port ${PORT}`);
+  console.error(`  Error: ${err.message}`);
+  process.exit(1);
 });
 
 module.exports = app;
