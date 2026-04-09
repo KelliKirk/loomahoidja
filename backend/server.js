@@ -1,12 +1,21 @@
+require('dotenv').config();
 const app = require('./App');
-const sequelize = require('./config/database');
+const { sequelize } = require('./config/database');
+
+// Sync models with database
+sequelize.sync({ alter: false })
+  .then(() => {
+    console.log('✓ Models synced with database');
+  })
+  .catch(err => {
+    console.error('✗ Error syncing models:', err.message);
+  });
 
 const PORT = process.env.PORT || 3001;
-
-sequelize.sync({ force: false }).then(() => {
-  console.log('Database connected');
-  app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-}).catch(err => {
-  console.error('Error connecting database', err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`✓ Server running on port ${PORT}`);
+  console.log(`✓ API available at http://localhost:${PORT}/api`);
+  console.log(`✓ Health check: GET http://localhost:${PORT}/health`);
 });
+
+module.exports = app;
