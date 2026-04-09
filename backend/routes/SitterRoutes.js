@@ -5,7 +5,7 @@ const {
   getOne,
   upsertProfile,
   deleteProfile,
-} = require('../controllers/sitter.controller');
+} = require('../controllers/SitterController');
 
 const storage = multer.diskStorage({
   destination: 'uploads/profiles/',
