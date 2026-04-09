@@ -22,6 +22,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/animals', require('./routes/AnimalRoutes'));
 app.use('/api/auth', require('./routes/AuthRoutes'));
 app.use('/api/sitters', require('./routes/SitterRoutes'));
+app.use('/api/users', require('./routes/UserRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {
