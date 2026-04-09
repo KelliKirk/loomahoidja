@@ -53,7 +53,6 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Animals API available at http://localhost:${PORT}/animals`);
-  console.log(`✓ Health check: GET http://localhost:${PORT}/health`);
 });
 
 module.exports = app;
