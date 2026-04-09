@@ -72,12 +72,30 @@ Headers: Authorization: Bearer {token}
 
 ## Seed Demo Data
 
-Load 5 demo animals into the database:
+Load demo users, sitter profiles, animals, and animal types:
+
 ```bash
+# Run all seeders in order
+node seeders/seed-demo-users.js && \
+node seeders/seed-demo-sitter-profiles.js && \
+node seeders/seed-demo-sitter-animal-types.js && \
 node seeders/demo-animals.js
 ```
 
-This adds test data for testing CRUD operations.
+Or run individual seeders:
+```bash
+node seeders/seed-demo-users.js      # Creates 2 test users
+node seeders/seed-demo-sitter-profiles.js  # Creates sitter profile
+node seeders/seed-demo-sitter-animal-types.js  # Assigns animal types to sitters
+node seeders/demo-animals.js         # Creates 5 demo animals
+```
+
+**Demo Data Created:**
+- Users: `owner@test.com` and `sitter@test.com` (password: `Test123!`)
+- Sitter profile for Jaan Tamm (€8.50/hr, handles dogs/cats/birds)
+- 5 animals: Max, Luna, Charlie, Milo, Buddy
+
+See `SEEDING_GUIDE.md` for detailed seeding documentation.
 
 ## Troubleshooting
 

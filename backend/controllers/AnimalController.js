@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { Animal } = require('../models');
 
 class AnimalController {
   static async create(req, res) {
@@ -16,7 +17,7 @@ class AnimalController {
 
       const photoPath = req.file ? `animals/${req.file.filename}` : null;
 
-      const animal = await req.app.get('db').models.Animal.create({
+      const animal = await Animal.create({
         ownerId,
         name,
         animalType: animalType || null,
@@ -45,7 +46,7 @@ class AnimalController {
       const { id } = req.params;
       const userId = req.user.id;
 
-      const animal = await req.app.get('db').models.Animal.findByPk(id);
+      const animal = await Animal.findByPk(id);
 
       if (!animal) {
         return res.status(404).json({ error: 'Pet not found' });
@@ -66,7 +67,7 @@ class AnimalController {
     try {
       const userId = req.user.id;
 
-      const animals = await req.app.get('db').models.Animal.findAll({
+      const animals = await Animal.findAll({
         where: { ownerId: userId },
       });
 
@@ -86,7 +87,7 @@ class AnimalController {
       const userId = req.user.id;
       const { name, animalType, age, goodWithAnimals, goodWithChildren, notes } = req.body;
 
-      const animal = await req.app.get('db').models.Animal.findByPk(id);
+      const animal = await Animal.findByPk(id);
 
       if (!animal) {
         if (req.file && fs.existsSync(req.file.path)) {
@@ -138,7 +139,7 @@ class AnimalController {
       const { id } = req.params;
       const userId = req.user.id;
 
-      const animal = await req.app.get('db').models.Animal.findByPk(id);
+      const animal = await Animal.findByPk(id);
 
       if (!animal) {
         return res.status(404).json({ error: 'Pet not found' });
