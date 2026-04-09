@@ -110,6 +110,17 @@ function App() {
               setRevealToken(false)
             }}
           />
+          <h2>Login (existing user)</h2>
+          <Login
+            baseUrl={baseUrl}
+            run={run}
+            onLoggedIn={({ user, token: t }) => {
+              setCurrentUser(user)
+              setToken(t)
+              setRevealToken(false)
+              setAnimals([])
+            }}
+          />
           <div className="row actions">
             <button onClick={() => run(async () => {
               const data = await apiJson({ baseUrl, path: '/users' })
@@ -201,6 +212,7 @@ function UserCreate({ baseUrl, run, onCreated, onToken }) {
   const [role, setRole] = useState('owner')
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
   const [city, setCity] = useState('')
 
@@ -210,15 +222,16 @@ function UserCreate({ baseUrl, run, onCreated, onToken }) {
       run(async () => {
         const data = await apiJson({
           baseUrl,
-          path: '/users',
+          path: '/auth/register',
           method: 'POST',
-          body: { role, email, fullName, phone: phone || null, city: city || null },
+          body: { role, email, fullName, password, phone: phone || null, city: city || null },
         })
         if (data?.user) onCreated(data.user)
         onToken?.(data?.token || '')
 
         setEmail('')
         setFullName('')
+        setPassword('')
         setPhone('')
         setCity('')
         return { user: data?.user, tokenGenerated: Boolean(data?.token) }
@@ -241,6 +254,10 @@ function UserCreate({ baseUrl, run, onCreated, onToken }) {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         </div>
         <div className="row">
+          <label>Password</label>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+        </div>
+        <div className="row">
           <label>Phone</label>
           <input value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
@@ -250,6 +267,42 @@ function UserCreate({ baseUrl, run, onCreated, onToken }) {
         </div>
         <div className="row actions">
           <button type="submit">Create user</button>
+        </div>
+      </div>
+    </form>
+  )
+}
+
+function Login({ baseUrl, run, onLoggedIn }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault()
+      run(async () => {
+        const data = await apiJson({
+          baseUrl,
+          path: '/auth/login',
+          method: 'POST',
+          body: { email, password },
+        })
+        if (data?.token && data?.user) onLoggedIn?.({ token: data.token, user: data.user })
+        setPassword('')
+        return data
+      })
+    }}>
+      <div className="grid">
+        <div className="row">
+          <label>Email</label>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+        <div className="row">
+          <label>Password</label>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+        </div>
+        <div className="row actions">
+          <button type="submit">Login</button>
         </div>
       </div>
     </form>
