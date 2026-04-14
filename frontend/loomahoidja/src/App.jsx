@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { apiForm, apiJson } from './api'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
 
 function App() {
   const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem('apiBaseUrl') || 'http://localhost:3001/api')
@@ -48,6 +50,7 @@ function App() {
 
   return (
     <>
+      <Navbar />
       <div className="wrap">
         <h1>Backend Test UI</h1>
 
@@ -173,7 +176,7 @@ function App() {
           <pre>{JSON.stringify(last, null, 2)}</pre>
         </section>
       </div>
-
+      <Footer />
     </>
   )
 }
