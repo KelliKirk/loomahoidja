@@ -59,7 +59,7 @@ class AuthController {
                 { expiresIn: '1h' }
             )
 
-            res.json({ message: 'Login successful', token, user: { id: user.id, fullName: user.fullName, email: user.email } });
+            res.json({ message: 'Login successful', token, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } });
         } catch (error) {
             res.status(500).json({ message: 'Login failed: ', error: error.message });
         }
