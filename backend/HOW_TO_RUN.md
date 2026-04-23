@@ -8,15 +8,40 @@ cd backend
 npm install
 ```
 
+## Running Tests (Jest)
+
+### Unit tests
+Unit tests do **not** require a live database connection.
+
+```bash
+cd backend
+npm test
+```
+
+### Integration tests (HTTP, uses MariaDB)
+Integration tests require a reachable MariaDB and correct `DB_*` variables in `.env`.
+
+```bash
+cd backend
+npm run test:integration
+```
+
 ### 2. Configure Environment Variables
-Ensure `.env` has:
+Copy the example file and fill in your local values:
+
+```bash
+cp .env.example .env
+```
+
+Ensure `.env` has (values are examples/placeholders):
 ```env
 PORT=3001
-DB_HOST=192.168.26.161
-DB_USER=root
-DB_PASSWORD=Qwerty1!
+DB_HOST=<your-db-host>
+DB_USER=<your-db-user>
+DB_PASSWORD=<your-db-password>
 DB_DATABASE=petsitting
-JWT_SECRET=petsitting_secret_key_2024
+DB_TEST_DATABASE=petsitting_test
+JWT_SECRET=<your-jwt-secret>
 ```
 
 ### 3. Run the Server
@@ -28,16 +53,16 @@ npm start
 ```
 ✓ Database connected successfully
 ✓ Models synced with database
-✓ Server running on port 3000
-✓ Animals API available at http://localhost:3001/animals
-✓ Health check: GET http://localhost:3001/health
+✓ Server running
+✓ API available
+✓ Health check available
 ```
 
 ## API Endpoints
 
 ### Generate Token (No Auth Required)
 ```bash
-POST http://localhost:3001/auth/test-token
+POST http://localhost:<PORT>/api/auth/test-token
 
 Body:
 {
@@ -49,24 +74,24 @@ Body:
 ### Animal CRUD (Auth Required)
 ```bash
 # Create Pet
-POST http://localhost:3001/animals
+POST http://localhost:<PORT>/api/animals
 Headers: Authorization: Bearer {token}
 Body: multipart/form-data
 
 # List User's Pets
-GET http://localhost:3001/animals
+GET http://localhost:<PORT>/api/animals
 Headers: Authorization: Bearer {token}
 
 # Get Single Pet
-GET http://localhost:3001/animals/:id
+GET http://localhost:<PORT>/api/animals/:id
 Headers: Authorization: Bearer {token}
 
 # Update Pet
-PUT http://localhost:3001/animals/:id
+PUT http://localhost:<PORT>/api/animals/:id
 Headers: Authorization: Bearer {token}
 
 # Delete Pet
-DELETE http://localhost:3001/animals/:id
+DELETE http://localhost:<PORT>/api/animals/:id
 Headers: Authorization: Bearer {token}
 ```
 
@@ -91,7 +116,7 @@ node seeders/demo-animals.js         # Creates 5 demo animals
 ```
 
 **Demo Data Created:**
-- Users: `owner@test.com` and `sitter@test.com` (password: `Test123!`)
+- Users: `owner@test.com` and `sitter@test.com` (credentials are defined in seeders; do not treat them as production secrets)
 - Sitter profile for Jaan Tamm (€8.50/hr, handles dogs/cats/birds)
 - 5 animals: Max, Luna, Charlie, Milo, Buddy
 
@@ -105,7 +130,7 @@ PORT=3001 npm start
 ```
 
 **Database Connection Failed:**
-- Verify MySQL is running on 192.168.26.161
+- Verify MariaDB/MySQL is running on your configured `DB_HOST`
 - Check credentials in .env
 - Ensure database `petsitting` exists
 
