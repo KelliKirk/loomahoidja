@@ -104,7 +104,8 @@ Load demo users, sitter profiles, animals, and animal types:
 node seeders/seed-demo-users.js && \
 node seeders/seed-demo-sitter-profiles.js && \
 node seeders/seed-demo-sitter-animal-types.js && \
-node seeders/demo-animals.js
+node seeders/demo-animals.js && \
+node seeders/seed-demo-messages.js
 ```
 
 Or run individual seeders:
@@ -113,6 +114,7 @@ node seeders/seed-demo-users.js      # Creates 2 test users
 node seeders/seed-demo-sitter-profiles.js  # Creates sitter profile
 node seeders/seed-demo-sitter-animal-types.js  # Assigns animal types to sitters
 node seeders/demo-animals.js         # Creates 5 demo animals
+node seeders/seed-demo-messages.js   # Creates demo conversation + messages (+ image)
 ```
 
 **Demo Data Created:**
