@@ -1,10 +1,19 @@
+import { Link } from 'react-router-dom';
+import './Navbar.css';
+import logo from '../../assets/logo.png';
+
 export default function Navbar() {
     return (
-        <nav>
-            <a href="" >Find a sitter</a>
-            <a href="" >How it works</a>
-            <a href="" >Log in</a>
-            <a href="" >Sign up</a>
+        <nav className="navbar">
+            <div className="navbar-left">
+                <img src={logo} alt="Loomahoidja logo" className="logo" />
+                <Link to="/" >Find a sitter</Link>
+                <Link to="how-it-works">How it works</Link>
+            </div>
+            <div className="navbar-right">
+                <Link to="login" className='login-btn'>Log in</Link>
+                <Link to="register" className='signup-btn'>Sign up</Link>
+            </div>
         </nav>
     );
 }
