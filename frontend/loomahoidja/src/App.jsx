@@ -1,9 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { apiForm, apiJson } from './api'
+import { apiJson } from './api'
+import AppHeader from './components/AppHeader.jsx'
+import AppFooter from './components/AppFooter.jsx'
+import HomePage from './pages/HomePage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import SignupPage from './pages/SignupPage.jsx'
+import SitterProfilePage from './pages/SitterProfilePage.jsx'
+import DashboardPage from './pages/DashboardPage.jsx'
+
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+const ANIMAL_TYPE_OPTIONS = ['all', 'dog', 'cat', 'bird', 'rodents', 'other']
 
 function App() {
-  const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem('apiBaseUrl') || 'http://localhost:3001/api')
+  const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem('apiBaseUrl') || DEFAULT_BASE_URL)
   const [token, setToken] = useState(() => localStorage.getItem('apiToken') || '')
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -13,14 +23,17 @@ function App() {
       return null
     }
   })
-  const [revealToken, setRevealToken] = useState(false)
-  const [users, setUsers] = useState([])
-  const [animals, setAnimals] = useState([])
+  const [page, setPage] = useState('home')
   const [sitters, setSitters] = useState([])
-  const [last, setLast] = useState(null)
+  const [selectedSitter, setSelectedSitter] = useState(null)
+  const [animals, setAnimals] = useState([])
+  const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const authHeadersOk = useMemo(() => Boolean(token && token.trim()), [token])
+  const authAvailable = Boolean(token && token.trim())
 
   useEffect(() => {
     localStorage.setItem('apiBaseUrl', baseUrl)
@@ -31,454 +44,182 @@ function App() {
   }, [token])
 
   useEffect(() => {
-    localStorage.setItem('apiCurrentUser', JSON.stringify(currentUser))
+    localStorage.setItem('apiCurrentUser', JSON.stringify(currentUser || {}))
   }, [currentUser])
+
+  useEffect(() => {
+    if (!sitters.length) {
+      fetchSitters()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (token && !currentUser?.id) {
+      verifyUser()
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (currentUser?.role === 'owner' && authAvailable) {
+      fetchAnimals()
+    }
+  }, [currentUser, authAvailable])
+
+  const filteredSitters = useMemo(() => {
+    return sitters
+      .filter((sitter) => {
+        if (filterType !== 'all') {
+          const types = sitter.SitterAnimalTypes?.map((item) => item.animalType.toLowerCase()) || []
+          if (!types.includes(filterType)) return false
+        }
+
+        if (!search.trim()) return true
+        const lower = search.toLowerCase()
+        return [sitter.User?.fullName, sitter.city, sitter.bio, sitter.hourlyRate]
+          .filter(Boolean)
+          .some((value) => value.toString().toLowerCase().includes(lower))
+      })
+      .sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0))
+  }, [sitters, filterType, search])
 
   async function run(fn) {
     setError('')
+    setStatus('')
+    setLoading(true)
     try {
       const data = await fn()
-      setLast(data)
+      setLoading(false)
       return data
     } catch (e) {
       setError(e?.message || String(e))
+      setLoading(false)
       throw e
     }
   }
 
-  return (
-    <>
-      <div className="wrap">
-        <h1>Backend Test UI</h1>
+  async function fetchSitters() {
+    return run(async () => {
+      const data = await apiJson({ baseUrl, path: '/sitters' })
+      setSitters(Array.isArray(data) ? data : data?.sitters || [])
+      return data
+    })
+  }
 
-        <section className="card">
-          <h2>Connection</h2>
-          <div className="row">
-            <label>API base URL</label>
-            <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="http://localhost:3001/api" />
-          </div>
-          <div className="row">
-            <label>Session</label>
-            <div className="muted">
-              {token ? (
-                <>
-                  Token is set{currentUser?.id ? ` for userId=${currentUser.id}` : ''}{currentUser?.role ? ` (${currentUser.role})` : ''}.
-                </>
-              ) : (
-                <>No token yet. Create a user to generate one automatically.</>
-              )}
-            </div>
-            {token ? (
-              <div className="row">
-                <label>
-                  <input type="checkbox" checked={revealToken} onChange={(e) => setRevealToken(e.target.checked)} /> reveal token
-                </label>
-                {revealToken ? (
-                  <textarea value={token} readOnly rows={3} />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-          <div className="row actions">
-            <button onClick={() => run(async () => {
-              const me = await apiJson({ baseUrl, path: '/auth/me', token })
-              if (me?.id) setCurrentUser({ id: me.id, email: me.email, role: me.role })
-              return me
-            })} disabled={!authHeadersOk}>
-              Verify token
-            </button>
-            <button onClick={() => {
-              setToken('')
-              setCurrentUser(null)
-              setRevealToken(false)
-              setAnimals([])
-            }}>Clear session</button>
-          </div>
-        </section>
+  async function fetchAnimals() {
+    if (!authAvailable) return
+    return run(async () => {
+      const data = await apiJson({ baseUrl, path: '/animals', token })
+      setAnimals(data?.animals || [])
+      return data
+    })
+  }
 
-        <section className="card">
-          <h2>Register user (auto token)</h2>
-          <UserCreate
-            onCreated={(u) => {
-              setUsers((prev) => [u, ...prev])
-              setCurrentUser(u)
-            }}
-            run={run}
-            baseUrl={baseUrl}
-            onToken={(t) => {
-              setToken(t)
-              setRevealToken(false)
-            }}
-          />
-          <h2>Login (existing user)</h2>
-          <Login
-            baseUrl={baseUrl}
-            run={run}
-            onLoggedIn={({ user, token: t }) => {
-              setCurrentUser(user)
-              setToken(t)
-              setRevealToken(false)
-              setAnimals([])
-            }}
-          />
-          <div className="row actions">
-            <button onClick={() => run(async () => {
-              const data = await apiJson({ baseUrl, path: '/users' })
-              setUsers(data.users || [])
-              return data
-            })}>
-              Load users
-            </button>
-          </div>
-          <SimpleList title="Users" items={users} itemKey={(u) => u.id} />
-        </section>
+  async function verifyUser() {
+    return run(async () => {
+      const me = await apiJson({ baseUrl, path: '/auth/me', token })
+      setCurrentUser(me)
+      return me
+    })
+  }
 
-        {currentUser?.role === 'owner' ? (
-          <section className="card">
-            <h2>Owner: animals</h2>
-            <div className="row actions">
-              <button onClick={() => run(async () => {
-                const data = await apiJson({ baseUrl, path: '/animals', token })
-                setAnimals(data.animals || [])
-                return data
-              })} disabled={!authHeadersOk}>
-                Load my animals
-              </button>
-            </div>
-            <AnimalCreate baseUrl={baseUrl} token={token} run={run} onCreated={(a) => setAnimals((prev) => [a, ...prev])} />
-            <SimpleList title="Animals" items={animals} itemKey={(a) => a.id} />
-          </section>
-        ) : null}
+  async function handleLogin(values) {
+    return run(async () => {
+      const data = await apiJson({ baseUrl, path: '/auth/login', method: 'POST', body: values })
+      if (data?.token && data?.user) {
+        setToken(data.token)
+        setCurrentUser(data.user)
+        setPage('home')
+        setStatus(`Welcome back, ${data.user.fullName}`)
+      }
+      return data
+    })
+  }
 
-        <section className="card">
-          <h2>Sitters</h2>
-          {currentUser?.role === 'sitter' ? (
-            <SitterProfileUpsert
-              baseUrl={baseUrl}
-              run={run}
-              initialUserId={String(currentUser?.id || '')}
-              onSaved={() => run(async () => {
-                const data = await apiJson({ baseUrl, path: '/sitters' })
-                setSitters(data || [])
-                return data
-              })}
-            />
-          ) : (
-            <div className="muted">Register as sitter to create/update a sitter profile.</div>
-          )}
-          <div className="row actions">
-            <button onClick={() => run(async () => {
-              const data = await apiJson({ baseUrl, path: '/sitters' })
-              setSitters(data || [])
-              return data
-            })}>
-              Load sitters
-            </button>
-          </div>
-          <SimpleList title="Sitters" items={sitters} itemKey={(s) => s.id} />
-        </section>
+  async function handleRegister(values) {
+    return run(async () => {
+      const data = await apiJson({ baseUrl, path: '/auth/register', method: 'POST', body: values })
+      if (data?.token && data?.user) {
+        setToken(data.token)
+        setCurrentUser(data.user)
+        setPage('home')
+        setStatus(`Account created for ${data.user.fullName}`)
+      }
+      return data
+    })
+  }
 
-        <section className="card">
-          <h2>Last response</h2>
-          {error ? <pre className="error">{error}</pre> : null}
-          <pre>{JSON.stringify(last, null, 2)}</pre>
-        </section>
-      </div>
+  function handleLogout() {
+    setToken('')
+    setCurrentUser(null)
+    setPage('home')
+    setAnimals([])
+    setStatus('You have been logged out.')
+  }
 
-    </>
-  )
-}
+  function openSitterProfile(sitter) {
+    setSelectedSitter(sitter)
+    setPage('sitter')
+  }
 
-function SimpleList({ title, items, itemKey }) {
-  return (
-    <div className="list">
-      <h3>{title}</h3>
-      {items?.length ? (
-        <ul>
-          {items.map((it) => (
-            <li key={itemKey(it)}>
-              <pre>{JSON.stringify(it, null, 2)}</pre>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="muted">No items</div>
-      )}
-    </div>
-  )
-}
-
-function UserCreate({ baseUrl, run, onCreated, onToken }) {
-  const [role, setRole] = useState('owner')
-  const [email, setEmail] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [password, setPassword] = useState('')
-  const [phone, setPhone] = useState('')
-  const [city, setCity] = useState('')
-
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault()
-      run(async () => {
-        const data = await apiJson({
-          baseUrl,
-          path: '/auth/register',
-          method: 'POST',
-          body: { role, email, fullName, password, phone: phone || null, city: city || null },
-        })
-        if (data?.user) onCreated(data.user)
-        onToken?.(data?.token || '')
-
-        setEmail('')
-        setFullName('')
-        setPassword('')
-        setPhone('')
-        setCity('')
-        return { user: data?.user, tokenGenerated: Boolean(data?.token) }
-      })
-    }}>
-      <div className="grid">
-        <div className="row">
-          <label>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="owner">owner</option>
-            <option value="sitter">sitter</option>
-          </select>
-        </div>
-        <div className="row">
-          <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>Full name</label>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>Password</label>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-        </div>
-        <div className="row">
-          <label>Phone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div className="row">
-          <label>City</label>
-          <input value={city} onChange={(e) => setCity(e.target.value)} />
-        </div>
-        <div className="row actions">
-          <button type="submit">Create user</button>
-        </div>
-      </div>
-    </form>
-  )
-}
-
-function Login({ baseUrl, run, onLoggedIn }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault()
-      run(async () => {
-        const data = await apiJson({
-          baseUrl,
-          path: '/auth/login',
-          method: 'POST',
-          body: { email, password },
-        })
-        if (data?.token && data?.user) onLoggedIn?.({ token: data.token, user: data.user })
-        setPassword('')
-        return data
-      })
-    }}>
-      <div className="grid">
-        <div className="row">
-          <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>Password</label>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-        </div>
-        <div className="row actions">
-          <button type="submit">Login</button>
-        </div>
-      </div>
-    </form>
-  )
-}
-
-function AnimalCreate({ baseUrl, token, run, onCreated }) {
-  const [name, setName] = useState('')
-  const [animalType, setAnimalType] = useState('dog')
-  const [age, setAge] = useState('')
-  const [goodWithAnimals, setGoodWithAnimals] = useState(false)
-  const [goodWithChildren, setGoodWithChildren] = useState(false)
-  const [notes, setNotes] = useState('')
-  const [photo, setPhoto] = useState(null)
-
-  return (
-    <form onSubmit={(e) => {
-      e.preventDefault()
-      run(async () => {
-        const fd = new FormData()
-        fd.append('name', name)
-        fd.append('animalType', animalType)
-        if (age) fd.append('age', age)
-        fd.append('goodWithAnimals', String(goodWithAnimals))
-        fd.append('goodWithChildren', String(goodWithChildren))
-        if (notes) fd.append('notes', notes)
-        if (photo) fd.append('photo', photo)
-
-        const data = await apiForm({ baseUrl, path: '/animals', token, formData: fd })
-        if (data?.animal) onCreated(data.animal)
-        setName('')
-        setAge('')
-        setGoodWithAnimals(false)
-        setGoodWithChildren(false)
-        setNotes('')
-        setPhoto(null)
-        return data
-      })
-    }}>
-      <h3>Create animal (needs token)</h3>
-      <div className="grid">
-        <div className="row">
-          <label>Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>Type</label>
-          <select value={animalType} onChange={(e) => setAnimalType(e.target.value)}>
-            <option value="dog">dog</option>
-            <option value="cat">cat</option>
-            <option value="bird">bird</option>
-            <option value="rodent">rodent</option>
-            <option value="other">other</option>
-          </select>
-        </div>
-        <div className="row">
-          <label>Age</label>
-          <input value={age} onChange={(e) => setAge(e.target.value)} type="number" min="0" />
-        </div>
-        <div className="row">
-          <label>Photo</label>
-          <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
-        </div>
-        <div className="row checkbox">
-          <label>
-            <input type="checkbox" checked={goodWithAnimals} onChange={(e) => setGoodWithAnimals(e.target.checked)} />
-            goodWithAnimals
-          </label>
-        </div>
-        <div className="row checkbox">
-          <label>
-            <input type="checkbox" checked={goodWithChildren} onChange={(e) => setGoodWithChildren(e.target.checked)} />
-            goodWithChildren
-          </label>
-        </div>
-        <div className="row">
-          <label>Notes</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-        </div>
-        <div className="row actions">
-          <button type="submit" disabled={!token}>Create animal</button>
-        </div>
-      </div>
-    </form>
-  )
-}
-
-function SitterProfileUpsert({ baseUrl, run, onSaved, initialUserId = '' }) {
-  const [userId, setUserId] = useState(initialUserId)
-  const [hourlyRate, setHourlyRate] = useState('10')
-  const [bio, setBio] = useState('')
-  const [hasAnimals, setHasAnimals] = useState(false)
-  const [hasChildren, setHasChildren] = useState(false)
-  const [city, setCity] = useState('')
-  const [photo, setPhoto] = useState(null)
-  const [animalTypes, setAnimalTypes] = useState(['dog'])
-
-  useEffect(() => {
-    setUserId(initialUserId || '')
-  }, [initialUserId])
-
-  const options = ['dog', 'cat', 'bird', 'fish', 'rodents', 'other']
-
-  function toggle(type) {
-    setAnimalTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
+  function openDashboard() {
+    if (currentUser?.role === 'owner') {
+      setPage('dashboard')
+      fetchAnimals()
+    }
   }
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault()
-      run(async () => {
-        const fd = new FormData()
-        fd.append('userId', userId)
-        fd.append('hourlyRate', hourlyRate)
-        fd.append('bio', bio)
-        fd.append('hasAnimals', String(hasAnimals ? 1 : 0))
-        fd.append('hasChildren', String(hasChildren ? 1 : 0))
-        fd.append('city', city)
-        animalTypes.forEach((t) => fd.append('animalTypes', t))
-        if (photo) fd.append('photo', photo)
+    <div className="app-shell">
+      <AppHeader
+        currentUser={currentUser}
+        page={page}
+        setPage={setPage}
+        onLogout={handleLogout}
+        onOpenDashboard={openDashboard}
+      />
 
-        const data = await apiForm({ baseUrl, path: '/sitters/profile', formData: fd })
-        onSaved?.(data)
-        return data
-      })
-    }}>
-      <h3>Upsert sitter profile</h3>
-      <div className="grid">
-        <div className="row">
-          <label>User id (must be sitter)</label>
-          <input value={userId} onChange={(e) => setUserId(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>Hourly rate</label>
-          <input value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} required />
-        </div>
-        <div className="row">
-          <label>City</label>
-          <input value={city} onChange={(e) => setCity(e.target.value)} />
-        </div>
-        <div className="row">
-          <label>Photo</label>
-          <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
-        </div>
-        <div className="row checkbox">
-          <label>
-            <input type="checkbox" checked={hasAnimals} onChange={(e) => setHasAnimals(e.target.checked)} />
-            hasAnimals
-          </label>
-        </div>
-        <div className="row checkbox">
-          <label>
-            <input type="checkbox" checked={hasChildren} onChange={(e) => setHasChildren(e.target.checked)} />
-            hasChildren
-          </label>
-        </div>
-        <div className="row">
-          <label>Bio</label>
-          <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
-        </div>
-        <div className="row">
-          <label>Animal types</label>
-          <div className="inline">
-            {options.map((t) => (
-              <label key={t} className="pill">
-                <input type="checkbox" checked={animalTypes.includes(t)} onChange={() => toggle(t)} />
-                {t}
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="row actions">
-          <button type="submit">Save profile</button>
-        </div>
-      </div>
-    </form>
+      <main className="app-main">
+        {page === 'home' && (
+          <HomePage
+            search={search}
+            setSearch={setSearch}
+            filterType={filterType}
+            setFilterType={setFilterType}
+            sitters={filteredSitters}
+            onSitterClick={openSitterProfile}
+            goToLogin={() => setPage('login')}
+            goToSignup={() => setPage('signup')}
+          />
+        )}
+
+        {page === 'login' && <LoginPage onLogin={handleLogin} />}
+
+        {page === 'signup' && <SignupPage onRegister={handleRegister} />}
+
+        {page === 'sitter' && selectedSitter && (
+          <SitterProfilePage sitter={selectedSitter} onBack={() => setPage('home')} />
+        )}
+
+        {page === 'dashboard' && currentUser?.role === 'owner' && (
+          <DashboardPage
+            currentUser={currentUser}
+            animals={animals}
+            onRefresh={fetchAnimals}
+            availableSitterCount={filteredSitters.length}
+          />
+        )}
+      </main>
+
+      <AppFooter
+        baseUrl={baseUrl}
+        onBaseUrlChange={setBaseUrl}
+        currentUser={currentUser}
+        status={status}
+      />
+
+      {error ? <div className="error-banner">{error}</div> : null}
+      {loading ? <div className="loading-banner">Loading…</div> : null}
+    </div>
   )
 }
 
