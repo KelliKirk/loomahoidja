@@ -1,7 +1,13 @@
 const { Sequelize } = require('sequelize');
 
+const isTest = process.env.NODE_ENV === 'test';
+const databaseName =
+  (isTest ? process.env.DB_TEST_DATABASE : null) ||
+  process.env.DB_DATABASE ||
+  'petsitting';
+
 const sequelize = new Sequelize(
-  process.env.DB_DATABASE || 'petsitting',
+  databaseName,
   process.env.DB_USER || 'root',
   process.env.DB_PASSWORD || '',
   {
@@ -18,24 +24,6 @@ const sequelize = new Sequelize(
   }
 );
 
-const AnimalModel = require('../models/Animal');
-
-const models = {
-  Animal: AnimalModel(sequelize),
-};
-
-sequelize.authenticate()
-  .then(() => {
-    console.log('✓ Database connected successfully');
-  })
-  .catch(err => {
-    console.error('✗ Database connection failed');
-    console.error('  Error:', err.message);
-    console.error('  Host:', process.env.DB_HOST);
-    console.error('  Database:', process.env.DB_DATABASE);
-  });
-
 module.exports = {
   sequelize,
-  models,
 };
