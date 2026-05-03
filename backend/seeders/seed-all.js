@@ -8,6 +8,7 @@ const seeders = [
   'seed-demo-sitter-profiles.js',
   'seed-demo-sitter-animal-types.js',
   'demo-animals.js',
+  'seed-demo-messages.js',
 ];
 
 async function runSeeder(seedFile) {
