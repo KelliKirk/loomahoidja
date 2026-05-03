@@ -16,18 +16,25 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  phone: DataTypes.STRING(50),
+  phone: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   fullName: {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  city: DataTypes.STRING(100),
+  city: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
   role: {
     type: DataTypes.ENUM('owner', 'sitter'),
     allowNull: false,
   },
 }, {
   tableName: 'users',
+  timestamps: true,
 });
 
 module.exports = User;
