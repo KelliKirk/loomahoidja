@@ -1,16 +1,30 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+const isTest = process.env.NODE_ENV === 'test';
+const databaseName =
+  (isTest ? process.env.DB_TEST_DATABASE : null) ||
+  process.env.DB_DATABASE ||
+  'petsitting';
+
 const sequelize = new Sequelize(
-    process.env.DB_DATABASE,
-    process.env.DB_USER,
-    process.env.DB_PASSWORD,
-    {
-        host: process.env.DB_HOST,
-        dialect: 'mysql',
-        logging: false
-    }
+  databaseName,
+  process.env.DB_USER || 'root',
+  process.env.DB_PASSWORD || '',
+  {
+    host: process.env.DB_HOST || 'localhost',
+    dialect: 'mysql',
+    dialectModule: require('mysql2'),
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+  }
+);
 
-)
-
-module.exports = sequelize;
+module.exports = {
+  sequelize,
+};

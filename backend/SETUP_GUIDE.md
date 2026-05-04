@@ -10,7 +10,7 @@ Complete pet profile (animal) CRUD backend with JWT authentication, file uploads
 npm install
 
 # 2. Ensure .env is configured
-cat .env  # Should have DB_HOST, DB_USER, DB_PASSWORD, JWT_SECRET
+cat .env  # Should have DB_HOST, DB_USER, DB_PASSWORD, JWT_SECRET (do not commit this file)
 
 # 3. Start server
 npm start
@@ -25,28 +25,28 @@ node seeders/demo-animals.js
 
 ### Authentication (No Auth Required)
 ```
-POST /auth/test-token
+POST /api/auth/test-token
   → Get JWT token for testing
 
-GET /auth/verify-token
+GET /api/auth/verify-token
   → Verify token validity
 ```
 
 ### Pet Profiles (Requires Auth Token)
 ```
-POST /animals
+POST /api/animals
   → Create pet (with optional photo)
 
-GET /animals
+GET /api/animals
   → List all user's pets
 
-GET /animals/:id
+GET /api/animals/:id
   → Get single pet
 
-PUT /animals/:id
+PUT /api/animals/:id
   → Update pet (with optional photo)
 
-DELETE /animals/:id
+DELETE /api/animals/:id
   → Delete pet (removes photo)
 ```
 
@@ -68,14 +68,14 @@ node seeders/demo-animals.js
 
 ### 1. Get Token
 ```bash
-curl -X POST http://localhost:3001/auth/test-token \
+curl -X POST http://localhost:<PORT>/api/auth/test-token \
   -H "Content-Type: application/json" \
   -d '{"userId": 1, "email": "test@example.com"}'
 ```
 
 ### 2. Create Pet
 ```bash
-curl -X POST http://localhost:3001/animals \
+curl -X POST http://localhost:<PORT>/api/animals \
   -H "Authorization: Bearer {TOKEN}" \
   -F "name=Fluffy" \
   -F "animalType=cat" \
@@ -84,19 +84,19 @@ curl -X POST http://localhost:3001/animals \
 
 ### 3. List Pets
 ```bash
-curl -X GET http://localhost:3001/animals \
+curl -X GET http://localhost:<PORT>/api/animals \
   -H "Authorization: Bearer {TOKEN}"
 ```
 
 ### 4. Get Single Pet
 ```bash
-curl -X GET http://localhost:3001/animals/1 \
+curl -X GET http://localhost:<PORT>/api/animals/1 \
   -H "Authorization: Bearer {TOKEN}"
 ```
 
 ### 5. Update Pet
 ```bash
-curl -X PUT http://localhost:3001/animals/1 \
+curl -X PUT http://localhost:<PORT>/api/animals/1 \
   -H "Authorization: Bearer {TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"age": 3, "notes": "Updated info"}'
@@ -104,7 +104,7 @@ curl -X PUT http://localhost:3001/animals/1 \
 
 ### 6. Delete Pet
 ```bash
-curl -X DELETE http://localhost:3001/animals/1 \
+curl -X DELETE http://localhost:<PORT>/api/animals/1 \
   -H "Authorization: Bearer {TOKEN}"
 ```
 
@@ -156,7 +156,7 @@ PORT=3001 npm start
 ```
 
 **Database connection failed:**
-- Verify MySQL running: `mysql -h 192.168.26.161 -u root -p`
+- Verify MariaDB/MySQL is running on your configured `DB_HOST`
 - Check .env credentials
 
 **No seeders yet:**

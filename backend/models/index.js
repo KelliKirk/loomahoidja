@@ -3,7 +3,12 @@ const { sequelize, DataTypes } = require('../config/database');
 const UserModel  = require('./User');
 const SitterProfile = require('./SitterProfile');
 const SitterAnimalType = require('./SitterAnimalType');
-const AnimalModel = require('./Animal');
+const Animal = require('./Animal')(sequelize);
+const Conversation = require('./Conversation');
+const ConversationParticipant = require('./ConversationParticipant');
+const Message = require('./Message');
+const MessageAttachment = require('./MessageAttachment');
+const Notification = require('./Notification');
 
 const User = UserModel(sequelize);
 const SitterProfile = SitterProfileModel(sequelize);
@@ -19,4 +24,26 @@ SitterAnimalType.belongsTo(SitterProfile, { foreignKey: 'sitterId' });
 User.hasMany(Animal, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
 Animal.belongsTo(User, { foreignKey: 'ownerId' });
 
-module.exports = { User, SitterProfile, SitterAnimalType, Animal };
+Conversation.hasMany(Message, { foreignKey: 'conversationId', onDelete: 'CASCADE' });
+Message.belongsTo(Conversation, { foreignKey: 'conversationId' });
+
+Message.hasMany(MessageAttachment, { foreignKey: 'messageId', onDelete: 'CASCADE' });
+MessageAttachment.belongsTo(Message, { foreignKey: 'messageId' });
+
+User.belongsToMany(Conversation, { through: ConversationParticipant, foreignKey: 'userId' });
+Conversation.belongsToMany(User, { through: ConversationParticipant, foreignKey: 'conversationId' });
+
+User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { foreignKey: 'userId' });
+
+module.exports = {
+  User,
+  SitterProfile,
+  SitterAnimalType,
+  Animal,
+  Conversation,
+  ConversationParticipant,
+  Message,
+  MessageAttachment,
+  Notification,
+};

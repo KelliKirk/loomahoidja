@@ -2,13 +2,17 @@ require('dotenv').config();
 const app = require('./App');
 const { sequelize } = require('./config/database');
 
-// Sync models with database
-sequelize.sync({ alter: false })
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('✓ Database connected successfully');
+    return sequelize.sync({ alter: false });
+  })
   .then(() => {
     console.log('✓ Models synced with database');
   })
-  .catch(err => {
-    console.error('✗ Error syncing models:', err.message);
+  .catch((err) => {
+    console.error('✗ Database init failed:', err.message);
   });
 
 const PORT = process.env.PORT || 3001;
