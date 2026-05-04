@@ -46,27 +46,9 @@ function App() {
   useEffect(() => {
     localStorage.setItem('apiCurrentUser', JSON.stringify(currentUser || {}))
     if (currentUser?.id) {
-      setPage('home')
+      setPage(currentUser.role === 'owner' ? 'dashboard' : 'home')
     }
   }, [currentUser])
-
-  useEffect(() => {
-    if (!sitters.length) {
-      fetchSitters()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (token && !currentUser?.id) {
-      verifyUser()
-    }
-  }, [token])
-
-  useEffect(() => {
-    if (currentUser?.role === 'owner' && authAvailable) {
-      fetchAnimals()
-    }
-  }, [currentUser, authAvailable])
 
   const filteredSitters = useMemo(() => {
     return sitters
@@ -131,7 +113,7 @@ function App() {
       if (data?.token && data?.user) {
         setToken(data.token)
         setCurrentUser(data.user)
-        setPage('home')
+        setPage(data.user.role === 'owner' ? 'dashboard' : 'home')
         setStatus(`Welcome back, ${data.user.fullName}`)
       }
       return data
@@ -144,7 +126,7 @@ function App() {
       if (data?.token && data?.user) {
         setToken(data.token)
         setCurrentUser(data.user)
-        setPage('home')
+        setPage(data.user.role === 'owner' ? 'dashboard' : 'home')
         setStatus(`Account created for ${data.user.fullName}`)
       }
       return data
@@ -164,23 +146,42 @@ function App() {
     setPage('sitter')
   }
 
-  function openDashboard() {
-    if (currentUser?.role === 'owner') {
-      setPage('dashboard')
+  useEffect(() => {
+    if (!sitters.length) {
+      fetchSitters()
+    }
+    // Keep this as a mount-time bootstrap; fetching on every helper identity change would loop loading state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (token && !currentUser?.id) {
+      verifyUser()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  useEffect(() => {
+    if (currentUser?.role === 'owner' && authAvailable) {
       fetchAnimals()
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, authAvailable])
+
+  const isDashboardPage = page === 'dashboard' && currentUser?.role === 'owner'
 
   return (
     <div className="app-shell">
-      <AppHeader
-        currentUser={currentUser}
-        page={page}
-        onSetPage={setPage}
-        onLogout={handleLogout}
-      />
+      {!isDashboardPage ? (
+        <AppHeader
+          currentUser={currentUser}
+          page={page}
+          onSetPage={setPage}
+          onLogout={handleLogout}
+        />
+      ) : null}
 
-      <main className="app-main">
+      <main className={`app-main ${isDashboardPage ? 'dashboard-main' : ''}`}>
         {page === 'home' && (
           <HomePage
             search={search}
@@ -207,12 +208,13 @@ function App() {
             currentUser={currentUser}
             animals={animals}
             onRefresh={fetchAnimals}
-            availableSitterCount={filteredSitters.length}
+            onNavigate={setPage}
+            onLogout={handleLogout}
           />
         )}
       </main>
 
-      {page !== 'home' && page !== 'login' && page !== 'signup' ? (
+      {page !== 'home' && page !== 'login' && page !== 'signup' && !isDashboardPage ? (
         <AppFooter
           baseUrl={baseUrl}
           onBaseUrlChange={setBaseUrl}

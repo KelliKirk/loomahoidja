@@ -3,6 +3,15 @@ import React from 'react'
 function AppHeader({ currentUser, page, onSetPage, onLogout }) {
   const isAuth = page === 'login' || page === 'signup'
   const isSitterProfile = page === 'sitter'
+  const isOwner = currentUser?.role === 'owner'
+  const userInitials = currentUser?.fullName?.slice(0, 2).toUpperCase() || 'U'
+  const loggedInActions = currentUser ? (
+    <div className="app-actions">
+      {isOwner ? <button onClick={() => onSetPage('dashboard')}>Owner dashboard</button> : null}
+      <button className="secondary" onClick={onLogout}>Log out</button>
+      <div className="user-avatar">{userInitials}</div>
+    </div>
+  ) : null
 
   return (
     <header className={`app-header ${isAuth ? 'auth-header' : ''}`}>
@@ -26,9 +35,7 @@ function AppHeader({ currentUser, page, onSetPage, onLogout }) {
             <button className="active">Sitter profile</button>
             <button>My bookings</button>
             <button>Messages</button>
-            {currentUser ? (
-              <div className="user-avatar">{currentUser.fullName?.slice(0, 2).toUpperCase() || 'U'}</div>
-            ) : (
+            {currentUser ? loggedInActions : (
               <button onClick={() => onSetPage('login')}>Log in</button>
             )}
           </>
@@ -36,10 +43,12 @@ function AppHeader({ currentUser, page, onSetPage, onLogout }) {
           <>
             <button className={page === 'home' ? 'active' : ''} onClick={() => onSetPage('home')}>Find a sitter</button>
             <button className={page === 'home' ? 'active' : ''} onClick={() => onSetPage('home')}>How it works</button>
-            <div className="app-actions">
-              <button className={page === 'login' ? 'active' : ''} onClick={() => onSetPage('login')}>Log in</button>
-              <button className="secondary" onClick={() => onSetPage('signup')}>Sign up</button>
-            </div>
+            {currentUser ? loggedInActions : (
+              <div className="app-actions">
+                <button className={page === 'login' ? 'active' : ''} onClick={() => onSetPage('login')}>Log in</button>
+                <button className="secondary" onClick={() => onSetPage('signup')}>Sign up</button>
+              </div>
+            )}
           </>
         )}
       </nav>

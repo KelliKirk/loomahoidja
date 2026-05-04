@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 
 function SitterProfilePage({ sitter, onBack }) {
+  const [fromDate, setFromDate] = useState('April 14, 2026')
+  const [toDate, setToDate] = useState('April 17, 2026')
+  const [selectedPet, setSelectedPet] = useState('Rex (Dog)')
+
   if (!sitter) return null
 
   const name = sitter.User?.fullName || 'Sitter'
@@ -10,10 +14,6 @@ function SitterProfilePage({ sitter, onBack }) {
   const rating = '4.9'
   const reviewCount = 28
   const memberSince = 2026
-
-  const [fromDate, setFromDate] = useState('April 14, 2026')
-  const [toDate, setToDate] = useState('April 17, 2026')
-  const [selectedPet, setSelectedPet] = useState('Rex (Dog)')
 
   const totalDays = 3
   const totalPrice = (totalDays * parseFloat(rate)).toFixed(2)
@@ -64,6 +64,7 @@ function SitterProfilePage({ sitter, onBack }) {
 
           {/* Action Buttons */}
           <div className="profile-actions">
+            <button className="btn-message" onClick={onBack}>Back</button>
             <button className="btn-book">Book now</button>
             <button className="btn-message">Send message</button>
           </div>
@@ -134,9 +135,9 @@ function SitterProfilePage({ sitter, onBack }) {
             {/* Date Range */}
             <div className="booking-section">
               <label className="booking-label">FROM</label>
-              <input type="text" className="date-input" value={fromDate} />
+              <input type="text" className="date-input" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
               <label className="booking-label">TO</label>
-              <input type="text" className="date-input" value={toDate} />
+              <input type="text" className="date-input" value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
 
             {/* Pet Selector */}
