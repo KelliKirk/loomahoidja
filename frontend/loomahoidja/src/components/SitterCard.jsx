@@ -1,28 +1,34 @@
 import React from 'react'
 
 function SitterCard({ sitter, onClick }) {
-  const name = sitter.User?.fullName || 'Sitter'
-  const city = sitter.User?.city || sitter.city || 'Unknown location'
-  const types = sitter.SitterAnimalTypes?.map((item) => item.animalType) || []
+  const name = sitter.name || sitter.User?.fullName || 'Sitter'
+  const city = sitter.city || sitter.User?.city || 'Unknown location'
+  const rate = sitter.rate || sitter.hourlyRate || '10.00'
+  const types = sitter.types || sitter.SitterAnimalTypes?.map((item) => item.animalType) || []
+  const rating = sitter.rating || '4.8'
+  const badge = sitter.badge
 
   return (
     <article className="sitter-card" onClick={() => onClick(sitter)}>
-      <div className="card-top">
-        <div className="sitter-avatar">{name.slice(0, 2).toUpperCase()}</div>
-        <div>
+      <div className="sitter-card-header">
+        <div className="sitter-card-avatar">{name.slice(0, 2).toUpperCase()}</div>
+        {badge ? <span className={`sitter-card-badge ${badge.toLowerCase()}`}>{badge}</span> : null}
+      </div>
+      <div className="sitter-card-body">
+        <div className="sitter-card-title">
           <h3>{name}</h3>
-          <p className="muted">{city}</p>
+          <span className="sitter-rate">{rate}€/h</span>
+        </div>
+        <p className="muted">{city}</p>
+        <p className="sitter-bio">{sitter.bio || 'Caring pet sitter available for daily walks, home visits, and overnight stays.'}</p>
+        <div className="tag-row">
+          {types.map((type) => (
+            <span className="pill" key={type}>{type}</span>
+          ))}
         </div>
       </div>
-      <p className="sitter-bio">{sitter.bio || 'Caring pet sitter available for daily walks, home visits, and overnight stays.'}</p>
-      <div className="tag-row">
-        <span className="pill">€{sitter.hourlyRate || '15'}/h</span>
-        {types.map((type) => (
-          <span className="pill" key={type}>{type}</span>
-        ))}
-      </div>
       <div className="card-foot">
-        <span>⭐ 4.8</span>
+        <span>⭐ {rating}</span>
         <button type="button">View profile</button>
       </div>
     </article>

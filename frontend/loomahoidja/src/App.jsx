@@ -23,7 +23,7 @@ function App() {
       return null
     }
   })
-  const [page, setPage] = useState('login')
+  const [page, setPage] = useState('home')
   const [sitters, setSitters] = useState([])
   const [selectedSitter, setSelectedSitter] = useState(null)
   const [animals, setAnimals] = useState([])
@@ -176,9 +176,8 @@ function App() {
       <AppHeader
         currentUser={currentUser}
         page={page}
-        setPage={setPage}
+        onSetPage={setPage}
         onLogout={handleLogout}
-        onOpenDashboard={openDashboard}
       />
 
       <main className="app-main">
@@ -213,7 +212,7 @@ function App() {
         )}
       </main>
 
-      {page !== 'login' && page !== 'signup' ? (
+      {page !== 'home' && page !== 'login' && page !== 'signup' ? (
         <AppFooter
           baseUrl={baseUrl}
           onBaseUrlChange={setBaseUrl}
