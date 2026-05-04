@@ -1,12 +1,30 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiJson } from '../api'
 import DashboardPage from './DashboardPage.jsx'
 
 export default function OwnerDashboardPage() {
-  const { user, token, apiBaseUrl } = useAuth()
+  const { user, token, apiBaseUrl, logout } = useAuth()
+  const navigate = useNavigate()
   const [animals, setAnimals] = useState([])
   const [sitterCount, setSitterCount] = useState(0)
+
+  const handleNavigate = useCallback(
+    (target) => {
+      if (target === 'home') {
+        navigate('/')
+      } else {
+        navigate(target)
+      }
+    },
+    [navigate],
+  )
+
+  const handleLogout = useCallback(() => {
+    logout()
+    navigate('/')
+  }, [logout, navigate])
 
   const refreshAnimals = useCallback(async () => {
     if (!token?.trim()) return
@@ -35,8 +53,20 @@ export default function OwnerDashboardPage() {
   }, [apiBaseUrl])
 
   useEffect(() => {
-    refreshAnimals()
-  }, [refreshAnimals])
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/animals', token })
+        if (!cancelled) setAnimals(data?.animals || [])
+      } catch {
+        if (!cancelled) setAnimals([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token])
 
   if (!user || user.role !== 'owner') {
     return (
@@ -52,6 +82,8 @@ export default function OwnerDashboardPage() {
       animals={animals}
       onRefresh={refreshAnimals}
       availableSitterCount={sitterCount}
+      onNavigate={handleNavigate}
+      onLogout={handleLogout}
     />
   )
 }
