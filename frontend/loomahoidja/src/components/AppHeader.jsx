@@ -2,6 +2,7 @@ import React from 'react'
 
 function AppHeader({ currentUser, page, onSetPage, onLogout }) {
   const isAuth = page === 'login' || page === 'signup'
+  const isSitterProfile = page === 'sitter'
 
   return (
     <header className={`app-header ${isAuth ? 'auth-header' : ''}`}>
@@ -16,6 +17,19 @@ function AppHeader({ currentUser, page, onSetPage, onLogout }) {
               <button onClick={() => onSetPage('login')}>Log in</button>
             ) : (
               <button className="secondary" onClick={() => onSetPage('signup')}>Create account</button>
+            )}
+          </>
+        ) : isSitterProfile ? (
+          <>
+            <button onClick={() => onSetPage('home')}>Find a sitter</button>
+            <button>How it works</button>
+            <button className="active">Sitter profile</button>
+            <button>My bookings</button>
+            <button>Messages</button>
+            {currentUser ? (
+              <div className="user-avatar">{currentUser.fullName?.slice(0, 2).toUpperCase() || 'U'}</div>
+            ) : (
+              <button onClick={() => onSetPage('login')}>Log in</button>
             )}
           </>
         ) : (
