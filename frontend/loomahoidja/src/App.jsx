@@ -28,8 +28,6 @@ function MainLayout() {
     : isSitterFinder
       ? 'app-main app-main--home'
       : 'app-main'
-
-export default function App() {
   return (
     <>
       {isOwnerDashboard ? null : <AppHeader />}
@@ -56,7 +54,6 @@ function HomeRoute() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const apiOrigin = apiOriginFromBase(apiBaseUrl)
-
   const applySearch = useCallback(async () => {
     setLoading(true)
     try {
@@ -71,7 +68,6 @@ function HomeRoute() {
       setLoading(false)
     }
   }, [apiBaseUrl])
-
   return (
     <HomePage
       apiOrigin={apiOrigin}
