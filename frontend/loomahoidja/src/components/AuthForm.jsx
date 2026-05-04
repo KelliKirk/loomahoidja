@@ -1,12 +1,10 @@
-import React from 'react'
+import { useState } from 'react'
 
-function AuthForm({ mode, onSubmit }) {
-  const [role, setRole] = React.useState('owner')
-  const [email, setEmail] = React.useState('')
-  const [fullName, setFullName] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [city, setCity] = React.useState('')
-  const [phone, setPhone] = React.useState('')
+export default function AuthForm({ mode, onSubmit, role, submitLabel }) {
+  const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
+  const [forgotHintOpen, setForgotHintOpen] = useState(false)
 
   const isSignup = mode === 'signup'
 
@@ -15,58 +13,80 @@ function AuthForm({ mode, onSubmit }) {
     const payload = { email, password }
     if (isSignup) {
       payload.fullName = fullName
-      payload.role = role
-      if (city) payload.city = city
-      if (phone) payload.phone = phone
+      payload.role = role || 'owner'
     }
     onSubmit(payload)
   }
 
+  const primaryLabel = submitLabel || (isSignup ? 'Continue →' : 'Log in')
+
   return (
-    <form className="auth-form" onSubmit={submitForm}>
+    <form className="authHiFiForm" onSubmit={submitForm}>
       {isSignup ? (
-        <div className="form-row">
-          <label>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="owner">Owner</option>
-            <option value="sitter">Sitter</option>
-          </select>
+        <div className="authHiFiField">
+          <label htmlFor="auth-fullname">Full name</label>
+          <input
+            id="auth-fullname"
+            name="fullName"
+            autoComplete="name"
+            placeholder="First Last"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+          />
         </div>
       ) : null}
-      {isSignup ? (
-        <div className="form-row">
-          <label>Full name</label>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-        </div>
-      ) : null}
-      <div className="form-row">
-        <label>Email</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+      <div className="authHiFiField">
+        <label htmlFor="auth-email">Email</label>
+        <input
+          id="auth-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
       </div>
-      <div className="form-row">
-        <label>Password</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+
+      <div className="authHiFiField">
+        <label htmlFor="auth-password">Password</label>
+        <input
+          id="auth-password"
+          name="password"
+          type="password"
+          autoComplete={isSignup ? 'new-password' : 'current-password'}
+          placeholder={isSignup ? '••••••••' : '••••••••'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
       </div>
+
       {!isSignup ? (
-        <div className="login-forgot">Forgot password?</div>
+        <div className="authHiFiForgot">
+          <button
+            type="button"
+            className="authHiFiForgotBtn"
+            onClick={() => setForgotHintOpen(true)}
+          >
+            Forgot password?
+          </button>
+          {forgotHintOpen ? (
+            <p className="authHiFiForgotHint" role="status">
+              Parooli taastamise voog lisandub peagi. Seniks võta vajadusel ühendust toega.
+            </p>
+          ) : null}
+        </div>
       ) : null}
-      {isSignup ? (
-        <>
-          <div className="form-row">
-            <label>City</label>
-            <input value={city} onChange={(e) => setCity(e.target.value)} />
-          </div>
-          <div className="form-row">
-            <label>Phone</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-        </>
-      ) : null}
-      <div className="form-row form-actions">
-        <button type="submit">{isSignup ? 'Create account' : 'Log in'}</button>
+
+      <div className="authHiFiField authHiFiField--submit">
+        <button type="submit" className="authHiFiPrimaryBtn">
+          {primaryLabel}
+        </button>
       </div>
     </form>
   )
 }
-
-export default AuthForm

@@ -32,12 +32,7 @@ function MainLayout() {
 }
 
 function AuthLayout() {
-  return (
-    <>
-      <AppHeader />
-      <Outlet />
-    </>
-  )
+  return <Outlet />
 }
 
 function HomeRoute() {

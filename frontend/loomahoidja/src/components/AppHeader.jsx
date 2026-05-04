@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom'
-import logoUrl from '../assets/logo.svg'
+import logoUrl from '../assets/logo.png'
 import { useAuth } from '../auth/AuthContext'
 import Button from './Button'
 
@@ -60,7 +60,7 @@ export default function AppHeader() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" className="btnSm">
+                <Button variant="outline" className="btnSm siteHeaderLoginBtn">
                   Logi sisse
                 </Button>
               </Link>
