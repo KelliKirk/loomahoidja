@@ -23,6 +23,8 @@ app.use('/api/animals', require('./routes/AnimalRoutes'));
 app.use('/api/auth', require('./routes/AuthRoutes'));
 app.use('/api/sitters', require('./routes/SitterRoutes'));
 app.use('/api/users', require('./routes/UserRoutes'));
+app.use('/api/conversations', require('./routes/ConversationRoutes'));
+app.use('/api/notifications', require('./routes/NotificationRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {

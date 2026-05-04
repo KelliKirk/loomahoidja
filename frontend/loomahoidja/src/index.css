@@ -1,24 +1,149 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 :root {
-  --color-bg: #EBBAB9;
-  --color-text: #34344A;
-  --color-accent1: #594157;
-  --color-accent2: #97B1A6;
-  --color-accent3: #698996;
-  --color-white: #ffffff;
+  --color-bg: #ebbab9;
+  --color-bg-2: #f2d3d2;
+  --color-bg-3: #e0a8a6;
+  --color-main: #34344a;
+  --color-accent-1: #594157;
+  --color-accent-2: #97b1a6;
+  --color-accent-3: #698996;
+  --color-surface: rgba(255, 255, 255, 0.55);
+  --color-surface-card: #97b1a6;
+  --color-surface-card-2: rgba(151, 177, 166, 0.85);
+  --color-border: #698996;
+  --color-placeholder: #698996;
+  --color-white: #fdf6f6;
 
-  --font: 'Nunito', sans-serif;
-}
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 14px 40px rgba(52, 52, 74, 0.12);
+  --shadow-soft: 0 8px 24px rgba(52, 52, 74, 0.08);
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --font: 'Nunito', system-ui, sans-serif;
+  --mono: ui-monospace, monospace;
+
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-main);
+  background-color: var(--color-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  font-family: var(--font);
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  margin: 0;
+  min-height: 100svh;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% -30%, var(--color-bg-2), transparent 55%),
+    radial-gradient(ellipse 80% 70% at 100% 20%, rgba(235, 186, 185, 0.65), transparent 50%),
+    radial-gradient(ellipse 70% 60% at 0% 80%, rgba(151, 177, 166, 0.35), transparent 45%),
+    linear-gradient(165deg, var(--color-bg-2) 0%, var(--color-bg) 38%, var(--color-bg-3) 100%);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: var(--color-accent-1);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Typography scale (stiiliraamat) */
+.typeDisplay {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeH1 {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeH2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeH3 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeH4 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeBody {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-main);
+}
+
+.typeBodySmall {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.typeCaption {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-accent-3);
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-main);
+}
+
+.textMuted {
+  color: var(--color-accent-3);
+}
+
+.textLink {
+  font-weight: 700;
+  color: var(--color-accent-1);
+}
+
+::selection {
+  background: rgba(89, 65, 87, 0.25);
 }
