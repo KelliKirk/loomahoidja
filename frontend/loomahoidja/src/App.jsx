@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { Suspense, lazy, useCallback, useState } from 'react'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import Loader from './components/Loader'
 import AppHeader from './components/AppHeader'
@@ -9,7 +9,6 @@ import './App.css'
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const SignupPage = lazy(() => import('./pages/SignupPage.jsx'))
-const FindSitterPage = lazy(() => import('./pages/FindSitterPage.jsx'))
 const SitterProfilePage = lazy(() => import('./pages/SitterProfilePage.jsx'))
 const OwnerDashboardPage = lazy(() => import('./pages/OwnerDashboardPage.jsx'))
 const SitterDashboardPage = lazy(() => import('./pages/SitterDashboardPage.jsx'))
@@ -21,10 +20,13 @@ function ShellSuspense({ children }) {
 }
 
 function MainLayout() {
+  const { pathname } = useLocation()
+  const isSitterFinder = pathname === '/' || pathname === '/find'
+  const mainClass = isSitterFinder ? 'app-main app-main--home' : 'app-main'
   return (
     <>
       <AppHeader />
-      <main className="app-main">
+      <main className={mainClass}>
         <Outlet />
       </main>
     </>
@@ -35,36 +37,43 @@ function AuthLayout() {
   return <Outlet />
 }
 
+function apiOriginFromBase(apiBaseUrl) {
+  return apiBaseUrl.replace(/\/?api\/?$/, '') || 'http://localhost:3001'
+}
+
 function HomeRoute() {
   const { apiBaseUrl } = useAuth()
-  const [sitters, setSitters] = useState([])
   const [search, setSearch] = useState('')
-  const [filterType, setFilterType] = useState('all')
+  const [rawSitters, setRawSitters] = useState([])
+  const [hasFetched, setHasFetched] = useState(false)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const apiOrigin = apiOriginFromBase(apiBaseUrl)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
-        const list = Array.isArray(data) ? data : data?.sitters || []
-        if (!cancelled) setSitters(list)
-      } catch {
-        if (!cancelled) setSitters([])
-      }
-    })()
-    return () => {
-      cancelled = true
+  const applySearch = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
+      const list = Array.isArray(data) ? data : data?.sitters || []
+      setRawSitters(list)
+      setHasFetched(true)
+    } catch {
+      setRawSitters([])
+      setHasFetched(true)
+    } finally {
+      setLoading(false)
     }
   }, [apiBaseUrl])
 
   return (
     <HomePage
+      apiOrigin={apiOrigin}
       search={search}
       setSearch={setSearch}
-      filterType={filterType}
-      setFilterType={setFilterType}
-      sitters={sitters}
+      rawSitters={rawSitters}
+      hasFetched={hasFetched}
+      loading={loading}
+      onApplySearch={applySearch}
       onSitterClick={(s) => navigate(`/sitter/${s.id}`)}
     />
   )
@@ -78,7 +87,7 @@ export default function App() {
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomeRoute />} />
-              <Route path="/find" element={<FindSitterPage />} />
+              <Route path="/find" element={<HomeRoute />} />
               <Route path="/sitter/:id" element={<SitterProfilePage />} />
               <Route path="/dashboard/owner" element={<OwnerDashboardPage />} />
               <Route path="/dashboard/sitter" element={<SitterDashboardPage />} />
