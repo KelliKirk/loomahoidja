@@ -34,10 +34,10 @@ export default function DevToolsPage() {
   }
 
   return (
-    <div className="pageShell devShell">
+    <div className="devShell">
       <header className="devTop">
         <h1 className="typeH2">API tööriistad</h1>
-        <Link to="/find">
+        <Link to="/">
           <Button variant="outline" className="btnSm">
             ← Rakendusse
           </Button>

@@ -1,4 +1,3 @@
-import AppHeader from '../components/AppHeader'
 import Button from '../components/Button'
 
 const requests = [
@@ -9,9 +8,7 @@ const requests = [
 
 export default function SitterDashboardPage() {
   return (
-    <div className="pageShell">
-      <AppHeader />
-      <main className="pageMain">
+    <main className="pageMain">
         <h1 className="typeH1">Tere tulemast, Leelo</h1>
         <p className="typeBody textMuted">Sinu hoidja ülevaade</p>
 
@@ -83,6 +80,5 @@ export default function SitterDashboardPage() {
           </section>
         </div>
       </main>
-    </div>
   )
 }

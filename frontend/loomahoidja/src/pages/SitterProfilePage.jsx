@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import AppHeader from '../components/AppHeader'
 import Avatar from '../components/Avatar'
 import Button from '../components/Button'
 import Field from '../components/Field'
@@ -107,31 +106,23 @@ export default function SitterProfilePage() {
 
   if (loading) {
     return (
-      <div className="pageShell">
-        <AppHeader />
-        <div className="centerPad">
-          <Loader label="Laadin profiili…" />
-        </div>
+      <div className="centerPad">
+        <Loader label="Laadin profiili…" />
       </div>
     )
   }
 
   if (!sitter) {
     return (
-      <div className="pageShell">
-        <AppHeader />
-        <main className="pageMain narrow">
-          <p className="typeBody">Hoidjat ei leitud.</p>
-          <Link to="/find">Tagasi otsingusse</Link>
-        </main>
-      </div>
+      <main className="pageMain narrow">
+        <p className="typeBody">Hoidjat ei leitud.</p>
+        <Link to="/">Tagasi avalehele</Link>
+      </main>
     )
   }
 
   return (
-    <div className="pageShell">
-      <AppHeader />
-      <main className="pageMain">
+    <main className="pageMain">
         <section className="profileHero cardSurface">
           <span className="sitterBadge profileBadge">{meta.badge}</span>
           <div className="profileHeroInner">
@@ -262,6 +253,5 @@ export default function SitterProfilePage() {
           </aside>
         </div>
       </main>
-    </div>
   )
 }

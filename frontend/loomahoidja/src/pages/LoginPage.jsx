@@ -1,101 +1,55 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import logoUrl from '../assets/logo.png'
 import { useAuth } from '../auth/AuthContext'
-import Button from '../components/Button'
-import Field from '../components/Field'
+import AuthForm from '../components/AuthForm.jsx'
 
 export default function LoginPage() {
   const nav = useNavigate()
   const { login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [role, setRole] = useState('owner')
   const [err, setErr] = useState('')
-  const [busy, setBusy] = useState(false)
 
-  async function onSubmit(e) {
-    e.preventDefault()
+  async function handleLogin(payload) {
     setErr('')
-    setBusy(true)
     try {
-      await login({ email, password, role })
-      nav('/find')
+      await login({ email: payload.email, password: payload.password, role: 'owner' })
+      nav('/')
     } catch (er) {
-      setErr(er?.message || 'Sisselogimine ebaõnnestus')
-    } finally {
-      setBusy(false)
+      setErr(er?.message || 'Login failed')
     }
   }
 
   return (
-    <div className="splitPage">
-      <div className="splitHeader">
-        <Link to="/" className="siteBrand">
-          <img src={logoUrl} className="brandLogo brandLogo--sm" alt="Loomahoidja" />
-          <span className="siteBrandName">Loomahoidja</span>
-        </Link>
-        <Link to="/login">
-          <Button variant="outline" className="btnSm">
-            Logi sisse
-          </Button>
-        </Link>
-      </div>
-
-      <div className="splitMain">
-        <section className="splitLeft">
-          <h1 className="typeDisplay">Tere tulemast tagasi</h1>
-          <p className="typeBody textMuted">Logi oma kontole sisse</p>
-
-          <form className="stackForm" onSubmit={onSubmit}>
-            <Field label="Roll">
-              <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="owner">Omanik</option>
-                <option value="sitter">Hoidja</option>
-              </select>
-            </Field>
-            <Field label="E-post">
-              <input
-                className="input"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Field>
-            <Field label="Parool">
-              <input
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Field>
-            {err ? <div className="formError">{err}</div> : null}
-            <Button variant="primary" className="btnWide" disabled={busy} type="submit">
-              Logi sisse
-            </Button>
-          </form>
-
-          <p className="typeBodySmall textMuted">
-            Pole kontot?{' '}
-            <Link to="/register" className="textLink">
-              Loo konto
+    <section className="login-page">
+      <div className="login-card">
+        <div className="login-left">
+          <div className="login-heading">
+            <h1>Welcome back</h1>
+            <p>Log in to your account</p>
+          </div>
+          {err ? <div className="formError">{err}</div> : null}
+          <AuthForm mode="login" onSubmit={handleLogin} />
+          <div className="login-footer">
+            <span>or</span>
+            <p>Don&apos;t have an account?</p>
+            <button type="button" className="secondary-button" onClick={() => nav('/register')}>
+              Create account
+            </button>
+          </div>
+          <p className="typeBodySmall textMuted" style={{ marginTop: '12px' }}>
+            <Link to="/find" className="textLink">
+              Eesti keeles (vana otsing)
             </Link>
           </p>
-        </section>
+        </div>
 
-        <section className="splitRight">
-          <h2 className="typeH2">Sinu lemmik väärib parimat hoolt</h2>
-          <p className="typeBody">
-            Ühine sadade omanike ja hoidjatega, kes usaldavad Loomahoidjat igapäevaselt.
-          </p>
-        </section>
+        <div className="login-right">
+          <div className="login-paws">🐾🐾🐾🐾</div>
+          <div className="login-copy">
+            <h2>Your pet deserves the best care</h2>
+            <p>Join hundreds of pet owners and sitters who trust Loomahoidja every day.</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,4 +1,4 @@
-import spinnerUrl from '../assets/loading-spinner.svg'
+import spinnerUrl from '../assets/loader.svg'
 import './Loader.css'
 
 export default function Loader({ label = 'Laadin…', size = 72 }) {

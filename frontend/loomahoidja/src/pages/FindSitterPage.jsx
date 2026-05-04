@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import AppHeader from '../components/AppHeader'
 import SitterCard from '../components/SitterCard'
 import Loader from '../components/Loader'
 import Field from '../components/Field'
@@ -75,9 +74,7 @@ export default function FindSitterPage() {
   }
 
   return (
-    <div className="pageShell">
-      <AppHeader />
-      <main className="pageMain">
+    <main className="pageMain">
         <section className="heroSearch">
           <h1 className="typeDisplay heroTitle">Leia usaldusväärne hoidja oma lemmikule</h1>
           <p className="typeBody heroSub">Ühendame omanikud ja hoidjad üle Eesti.</p>
@@ -178,6 +175,5 @@ export default function FindSitterPage() {
           </section>
         </div>
       </main>
-    </div>
   )
 }

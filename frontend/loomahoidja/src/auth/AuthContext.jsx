@@ -71,13 +71,13 @@ export function AuthProvider({ children }) {
   )
 
   const register = useCallback(
-    async ({ email, password, fullName, role }) => {
+    async ({ email, password, fullName, role, phone, city }) => {
       try {
         const data = await apiJson({
           baseUrl: apiBaseUrl,
           path: '/auth/register',
           method: 'POST',
-          body: { email, password, fullName, role },
+          body: { email, password, fullName, role, phone: phone || null, city: city || null },
         })
         setSession(data.token, data.user)
         localStorage.setItem(LS_PROFILE, JSON.stringify({ fullName, email, role }))

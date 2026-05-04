@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom'
-import logoUrl from '../assets/logo.png'
+import logoUrl from '../assets/logo.svg'
 import { useAuth } from '../auth/AuthContext'
 import Button from './Button'
 
@@ -15,8 +15,11 @@ export default function AppHeader() {
         </Link>
 
         <nav className="siteNav" aria-label="Põhinavigatsioon">
-          <NavLink to="/find" className={({ isActive }) => (isActive ? 'navLink active' : 'navLink')}>
+          <NavLink to="/" end className={({ isActive }) => (isActive ? 'navLink active' : 'navLink')}>
             Leia hoidja
+          </NavLink>
+          <NavLink to="/find" className={({ isActive }) => (isActive ? 'navLink active' : 'navLink')}>
+            ET otsing
           </NavLink>
           <NavLink to="/how-it-works" className={({ isActive }) => (isActive ? 'navLink active' : 'navLink')}>
             Kuidas see töötab
