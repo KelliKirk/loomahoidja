@@ -1,238 +1,257 @@
-import React, { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import Avatar from '../components/Avatar'
+import Button from '../components/Button'
+import Field from '../components/Field'
+import CalendarRangePicker from '../components/CalendarRangePicker'
+import Loader from '../components/Loader'
+import { useAuth } from '../auth/AuthContext'
+import { fetchSitter } from '../lib/sittersApi'
+import { fallbackSitterById } from '../lib/fallbackSitters'
+import { coordsForCity, osmEmbedUrl } from '../lib/geo'
+import {
+  acquireHold,
+  addConfirmedBlock,
+  getBlockedDateSet,
+  releaseHold,
+  subscribeBooking,
+  tabSessionId,
+} from '../lib/bookingHold'
+import { mergeUnavailableIntoSet } from '../lib/mockMeta'
+import { eachDayInRange } from '../lib/dateRange'
+import { SITTER_UI_META } from '../lib/mockMeta'
 
-function SitterProfilePage({ sitter, onBack }) {
-  const [fromDate, setFromDate] = useState('April 14, 2026')
-  const [toDate, setToDate] = useState('April 17, 2026')
-  const [selectedPet, setSelectedPet] = useState('Rex (Dog)')
+const DEMO_PETS_KEY = 'loom_demo_pets_v1'
 
-  if (!sitter) return null
-
-  const name = sitter.User?.fullName || 'Sitter'
-  const city = sitter.User?.city || sitter.city || 'Local area'
-  const types = sitter.SitterAnimalTypes?.map((item) => item.animalType) || []
-  const rate = sitter.hourlyRate || '15'
-  const rating = '4.9'
-  const reviewCount = 28
-  const memberSince = 2026
-
-  const totalDays = 3
-  const totalPrice = (totalDays * parseFloat(rate)).toFixed(2)
-
-  // Sample reviews
-  const reviews = [
-    {
-      id: 1,
-      author: 'Mati K.',
-      rating: 5.0,
-      text: 'Leelo took amazing care of our dog. Very communicative and responsible. Highly recommend!',
-    },
-    {
-      id: 2,
-      author: 'Kati M.',
-      rating: 4.7,
-      text: 'Our cats were happy and well-fed. Will definitely book again next time.',
-    },
+function loadDemoPets() {
+  try {
+    const raw = localStorage.getItem(DEMO_PETS_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {
+    /* ignore */
+  }
+  return [
+    { id: 1, name: 'Rex', type: 'dog' },
+    { id: 2, name: 'Miisu', type: 'cat' },
   ]
+}
+
+export default function SitterProfilePage() {
+  const { id } = useParams()
+  const { apiBaseUrl } = useAuth()
+  const [sitter, setSitter] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [yearMonth, setYearMonth] = useState(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
+  const [range, setRange] = useState({ start: null, end: null })
+  const [toast, setToast] = useState('')
+  const [pets] = useState(() => loadDemoPets())
+  const [petId, setPetId] = useState(1)
+  const [holdTick, setHoldTick] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      const fallback = fallbackSitterById(id)
+      try {
+        const s = await fetchSitter(apiBaseUrl, id)
+        if (!cancelled) setSitter(s)
+      } catch {
+        if (!cancelled) setSitter(fallback)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, id])
+
+  const disabledSet = useMemo(() => {
+    if (!sitter) return new Set()
+    const blocked = getBlockedDateSet(sitter.id, tabSessionId)
+    return mergeUnavailableIntoSet(sitter.id, blocked)
+  }, [sitter, holdTick])
+
+  useEffect(() => {
+    return subscribeBooking(() => setHoldTick((t) => t + 1))
+  }, [])
+
+  useEffect(() => {
+    if (!sitter?.id) return
+    if (!range.start || !range.end) {
+      releaseHold(sitter.id, tabSessionId)
+      return
+    }
+    const res = acquireHold(sitter.id, range.start, range.end, tabSessionId)
+    if (!res.ok) {
+      setToast('Need kuupäevad on hetkel teise broneeringu poolt reserveeritud. Palun vali teised ajad.')
+      setRange({ start: null, end: null })
+    } else {
+      setToast('')
+    }
+  }, [sitter?.id, range.start, range.end])
+
+  const coords = sitter ? coordsForCity(sitter.city) : { lat: 58.5, lng: 25.5 }
+  const mapUrl = osmEmbedUrl(coords.lat, coords.lng)
+
+  const days =
+    range.start && range.end ? eachDayInRange(range.start, range.end).length : 0
+  const total = sitter && days ? days * Number(sitter.hourlyRate) : 0
+
+  const meta = sitter ? SITTER_UI_META[sitter.id] || { badge: 'Saadaval' } : { badge: '' }
+
+  if (loading) {
+    return (
+      <div className="centerPad">
+        <Loader label="Laadin profiili…" />
+      </div>
+    )
+  }
+
+  if (!sitter) {
+    return (
+      <main className="pageMain narrow">
+        <p className="typeBody">Hoidjat ei leitud.</p>
+        <Link to="/">Tagasi avalehele</Link>
+      </main>
+    )
+  }
 
   return (
-    <section className="sitter-profile-page">
-      <div className="profile-main">
-        <div className="profile-left">
-          {/* Avatar and Basic Info */}
-          <div className="profile-intro">
-            <div className="profile-avatar-xl">{name.slice(0, 2).toUpperCase()}</div>
-            <div className="profile-intro-content">
-              <h1 className="profile-name">{name}</h1>
-              <p className="profile-location">{city} • Member since {memberSince}</p>
-              <div className="profile-types">
-                {types.map((type) => (
-                  <span className="type-pill" key={type}>
-                    {type}
+    <main className="pageMain">
+        <section className="profileHero cardSurface">
+          <span className="sitterBadge profileBadge">{meta.badge}</span>
+          <div className="profileHeroInner">
+            <Avatar src={sitter.photo} name={sitter.name} size={96} />
+            <div className="profileHeroText">
+              <h1 className="typeH1 profileName">{sitter.name}</h1>
+              <p className="typeBodySmall textMuted">
+                {sitter.city || '—'} • liige alates 2026
+              </p>
+              <div className="tagRow">
+                {(sitter.animalTypes || []).map((t) => (
+                  <span key={t} className="tag">
+                    {t}
                   </span>
                 ))}
               </div>
-              <div className="profile-rating">
-                <span className="star">⭐ {rating}</span>
-                <span className="review-count">• {reviewCount} reviews</span>
+              <p className="typeBody">
+                ★ {Number(sitter.rating).toFixed(1)} • {sitter.reviewCount} arvustust
+              </p>
+            </div>
+            <div className="profileHeroAside">
+              <p className="typeH2">{Number(sitter.hourlyRate).toFixed(2)} € / tund</p>
+              <Button variant="primary" className="btnWide" type="button">
+                Broneeri kohe
+              </Button>
+              <Button variant="outline" className="btnWide" type="button">
+                Saada sõnum
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <div className="profileColumns">
+          <div className="profileMain">
+            <section className="cardSurface blockPad">
+              <h2 className="typeH2">Minust</h2>
+              <p className="typeBody">{sitter.bio || '—'}</p>
+            </section>
+            <section className="cardSurface blockPad">
+              <h2 className="typeH2">Loomad, keda hooldan</h2>
+              <div className="tagRow">
+                {(sitter.animalTypes || []).map((t) => (
+                  <span key={t} className="tag">
+                    {t}
+                  </span>
+                ))}
               </div>
-            </div>
-            <div className="profile-rate">
-              <span className="rate-amount">{rate}€</span>
-              <span className="rate-label">/hour</span>
-            </div>
+            </section>
+            <section className="cardSurface blockPad">
+              <h2 className="typeH2">Kodu</h2>
+              <ul className="typeBody listPlain">
+                <li>{sitter.hasChildren ? '✓' : '✗'} Lapsed kodus</li>
+                <li>{sitter.hasAnimals ? '✓' : '✗'} Teised lemmikloomad kodus</li>
+                <li>✓ Saadaval nädalavahetustel (demo)</li>
+              </ul>
+            </section>
           </div>
 
-          {/* Action Buttons */}
-          <div className="profile-actions">
-            <button className="btn-message" onClick={onBack}>Back</button>
-            <button className="btn-book">Book now</button>
-            <button className="btn-message">Send message</button>
-          </div>
+          <aside className="profileAside">
+            <section className="cardSurface blockPad">
+              <h2 className="typeH3">Broneeri: {sitter.name.split(' ')[0]}</h2>
+              {toast ? <div className="formError">{toast}</div> : null}
+              <Field label="Kuu">
+                <input
+                  className="input"
+                  type="month"
+                  value={yearMonth}
+                  onChange={(e) => setYearMonth(e.target.value)}
+                />
+              </Field>
+              <CalendarRangePicker
+                yearMonth={yearMonth}
+                selectedStart={range.start}
+                selectedEnd={range.end}
+                disabledSet={disabledSet}
+                onRangeChange={setRange}
+                onBlockedAttempt={() =>
+                  setToast('See päev pole saadaval või on ajutiselt lukus.')
+                }
+              />
+              <Field label="Sinu lemmik">
+                <select className="input" value={petId} onChange={(e) => setPetId(Number(e.target.value))}>
+                  {pets.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.type})
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <p className="typeBody">
+                {days ? `${days} päeva × ${Number(sitter.hourlyRate).toFixed(2)} € = ${total.toFixed(2)} €` : '—'}
+              </p>
+              <Button
+                variant="primary"
+                className="btnWide"
+                disabled={!range.start || !range.end}
+                type="button"
+                onClick={() => {
+                  if (!range.start || !range.end) return
+                  addConfirmedBlock(sitter.id, range.start, range.end)
+                  releaseHold(sitter.id, tabSessionId)
+                  setRange({ start: null, end: null })
+                  setToast('Broneeringu päring saadetud (demo). Kuupäevad on nüüd teistele lukus.')
+                  setHoldTick((x) => x + 1)
+                }}
+              >
+                Esita broneering
+              </Button>
+            </section>
 
-          {/* About Section */}
-          <div className="profile-section">
-            <h3 className="section-title">About</h3>
-            <p className="section-text">
-              {sitter.bio || 'Fifteen years of experience for dogs and cats of all sizes. I grew up on a farm and have always loved animals. I will treat your pet like family.'}
-            </p>
-          </div>
+            <section className="cardSurface blockPad">
+              <h2 className="typeH3">Saadavus</h2>
+              <p className="typeCaption legendRow">
+                <span className="swatch swatchFree" /> Saadaval{' '}
+                <span className="swatch swatchBusy" /> Hõivatud / pole valitav
+              </p>
+            </section>
 
-          {/* Animals I Care For */}
-          <div className="profile-section">
-            <h3 className="section-title">Animals I Care For</h3>
-            <div className="animals-list">
-              {types.length > 0 ? types.map((type) => (
-                <span className="animal-item" key={type}>
-                  {type}
-                </span>
-              )) : (
-                <span className="animal-item">Dogs, Cats, Birds</span>
-              )}
-            </div>
-          </div>
-
-          {/* Home Details */}
-          <div className="profile-section">
-            <h3 className="section-title">Home Details</h3>
-            <ul className="home-details">
-              <li className="detail-item checked">
-                <span className="check">✓</span>
-                <span>Has children at home</span>
-              </li>
-              <li className="detail-item checked">
-                <span className="check">✓</span>
-                <span>Has other pets at home</span>
-              </li>
-              <li className="detail-item checked">
-                <span className="check">✓</span>
-                <span>Available on weekends and holidays</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Reviews Section */}
-          <div className="profile-section">
-            <h3 className="section-title">Reviews</h3>
-            <div className="reviews-list">
-              {reviews.map((review) => (
-                <div className="review-card" key={review.id}>
-                  <div className="review-header">
-                    <strong className="review-author">{review.author}</strong>
-                    <span className="review-rating">★ {review.rating}</span>
-                  </div>
-                  <p className="review-text">{review.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+            <section className="cardSurface blockPad">
+              <h2 className="typeH3">Asukoht</h2>
+              <p className="typeBodySmall textMuted">
+                Ligikaudne asukoht — täpne aadress jagatakse pärast broneeringut.
+              </p>
+              <div className="mapFrame">
+                <iframe title="Kaart" src={mapUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              </div>
+            </section>
+          </aside>
         </div>
-
-        {/* Right Column - Booking Card */}
-        <aside className="profile-right">
-          <div className="booking-card">
-            <h2 className="booking-title">Book {name.split(' ')[0]}</h2>
-
-            {/* Date Range */}
-            <div className="booking-section">
-              <label className="booking-label">FROM</label>
-              <input type="text" className="date-input" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-              <label className="booking-label">TO</label>
-              <input type="text" className="date-input" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-            </div>
-
-            {/* Pet Selector */}
-            <div className="booking-section">
-              <label className="booking-label">Your Pet</label>
-              <select className="pet-select" value={selectedPet} onChange={(e) => setSelectedPet(e.target.value)}>
-                <option>Rex (Dog)</option>
-                <option>Luna (Cat)</option>
-                <option>Birdie (Bird)</option>
-              </select>
-            </div>
-
-            {/* Price Calculation */}
-            <div className="price-calculation">
-              <div className="price-row">
-                <span>{totalDays} days x {rate}€</span>
-                <span className="price-amount">{totalPrice}€</span>
-              </div>
-            </div>
-
-            {/* Request Booking Button */}
-            <button className="btn-request-booking">Request booking</button>
-
-            {/* Availability Calendar */}
-            <div className="booking-section">
-              <h3 className="booking-subtitle">Availability</h3>
-              <div className="calendar">
-                <div className="calendar-header">
-                  <span>&lt;</span>
-                  <span className="calendar-month">May 2026</span>
-                  <span>&gt;</span>
-                </div>
-                <div className="calendar-weekdays">
-                  <span>M</span>
-                  <span>T</span>
-                  <span>W</span>
-                  <span>T</span>
-                  <span>F</span>
-                  <span>S</span>
-                  <span>S</span>
-                </div>
-                <div className="calendar-grid">
-                  <span className="day empty"></span>
-                  <span className="day available">1</span>
-                  <span className="day available">2</span>
-                  <span className="day available">3</span>
-                  <span className="day available">4</span>
-                  <span className="day available">5</span>
-                  <span className="day available">6</span>
-                  <span className="day available">7</span>
-                  <span className="day available">8</span>
-                  <span className="day available">9</span>
-                  <span className="day available">10</span>
-                  <span className="day available">11</span>
-                  <span className="day available">12</span>
-                  <span className="day available">13</span>
-                  <span className="day available">14</span>
-                  <span className="day available">15</span>
-                  <span className="day available">16</span>
-                  <span className="day available">17</span>
-                  <span className="day available">18</span>
-                  <span className="day available">19</span>
-                  <span className="day booked">20</span>
-                  <span className="day available">21</span>
-                  <span className="day available">22</span>
-                  <span className="day available">23</span>
-                  <span className="day available">24</span>
-                  <span className="day available">25</span>
-                  <span className="day available">26</span>
-                  <span className="day available">27</span>
-                  <span className="day today">28</span>
-                  <span className="day available">29</span>
-                  <span className="day available">30</span>
-                  <span className="day available">31</span>
-                </div>
-                <div className="calendar-legend">
-                  <span className="legend-item"><span className="legend-box available"></span> Available</span>
-                  <span className="legend-item"><span className="legend-box booked"></span> Busy</span>
-                  <span className="legend-item"><span className="legend-box today"></span> Today</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Location Map */}
-            <div className="booking-section">
-              <h3 className="booking-subtitle">Location</h3>
-              <div className="location-map">
-                <p>📍 Approximate location - exact address shared after booking</p>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </section>
+      </main>
   )
 }
-
-export default SitterProfilePage

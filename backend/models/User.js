@@ -32,16 +32,6 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('owner', 'sitter'),
     allowNull: false,
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: DataTypes.NOW,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: DataTypes.NOW,
-  },
 }, {
   tableName: 'users',
   timestamps: true,

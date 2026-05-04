@@ -67,7 +67,6 @@ class AuthController {
     }
   }
 
-  // Generate test token for development
   static generateTestToken(req, res) {
     try {
       const { userId = 1, email = 'test@example.com', role = 'owner' } = req.body;
@@ -96,7 +95,6 @@ class AuthController {
     }
   }
 
-  // Verify token endpoint (debug)
   static verifyToken(req, res) {
     try {
       const token = req.headers.authorization?.split(' ')[1];
@@ -124,7 +122,6 @@ class AuthController {
     }
   }
 
-  // Update user role (make them sitter/owner)
   static async updateRole(req, res) {
     try {
       const { userId, role } = req.body;

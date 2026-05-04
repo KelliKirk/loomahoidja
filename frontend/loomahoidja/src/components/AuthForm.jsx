@@ -1,10 +1,10 @@
-import React from 'react'
+import { useState } from 'react'
 
-function AuthForm({ mode, onSubmit }) {
-  const [role, setRole] = React.useState('owner')
-  const [email, setEmail] = React.useState('')
-  const [fullName, setFullName] = React.useState('')
-  const [password, setPassword] = React.useState('')
+export default function AuthForm({ mode, onSubmit, role, submitLabel }) {
+  const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
+  const [forgotHintOpen, setForgotHintOpen] = useState(false)
 
   const isSignup = mode === 'signup'
 
@@ -13,60 +13,80 @@ function AuthForm({ mode, onSubmit }) {
     const payload = { email, password }
     if (isSignup) {
       payload.fullName = fullName
-      payload.role = role
+      payload.role = role || 'owner'
     }
     onSubmit(payload)
   }
 
+  const primaryLabel = submitLabel || (isSignup ? 'Continue →' : 'Log in')
+
   return (
-    <form className="auth-form" onSubmit={submitForm}>
+    <form className="authHiFiForm" onSubmit={submitForm}>
       {isSignup ? (
-        <div className="role-options">
-          <button
-            type="button"
-            className={`role-option ${role === 'owner' ? 'active' : ''}`}
-            onClick={() => setRole('owner')}
-          >
-            <strong>I'm a pet owner</strong>
-            <span>I'm looking for a trusted sitter for my pet</span>
-          </button>
-          <button
-            type="button"
-            className={`role-option ${role === 'sitter' ? 'active' : ''}`}
-            onClick={() => setRole('sitter')}
-          >
-            <strong>I'm a sitter</strong>
-            <span>I want to offer pet sitting services</span>
-          </button>
+        <div className="authHiFiField">
+          <label htmlFor="auth-fullname">Full name</label>
+          <input
+            id="auth-fullname"
+            name="fullName"
+            autoComplete="name"
+            placeholder="First Last"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+          />
         </div>
       ) : null}
 
-      {isSignup ? (
-        <div className="form-row">
-          <label>Full name</label>
-          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-        </div>
-      ) : null}
-
-      <div className="form-row">
-        <label>Email</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <div className="authHiFiField">
+        <label htmlFor="auth-email">Email</label>
+        <input
+          id="auth-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
       </div>
 
-      <div className="form-row">
-        <label>Password</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      <div className="authHiFiField">
+        <label htmlFor="auth-password">Password</label>
+        <input
+          id="auth-password"
+          name="password"
+          type="password"
+          autoComplete={isSignup ? 'new-password' : 'current-password'}
+          placeholder={isSignup ? '••••••••' : '••••••••'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
       </div>
 
       {!isSignup ? (
-        <div className="login-forgot">Forgot password?</div>
+        <div className="authHiFiForgot">
+          <button
+            type="button"
+            className="authHiFiForgotBtn"
+            onClick={() => setForgotHintOpen(true)}
+          >
+            Forgot password?
+          </button>
+          {forgotHintOpen ? (
+            <p className="authHiFiForgotHint" role="status">
+              Parooli taastamise voog lisandub peagi. Seniks võta vajadusel ühendust toega.
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
-      <div className="form-row form-actions">
-        <button type="submit">{isSignup ? 'Continue →' : 'Log in'}</button>
+      <div className="authHiFiField authHiFiField--submit">
+        <button type="submit" className="authHiFiPrimaryBtn">
+          {primaryLabel}
+        </button>
       </div>
     </form>
   )
 }
-
-export default AuthForm

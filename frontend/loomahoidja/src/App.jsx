@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
-import './App.css'
+import { Suspense, lazy, useCallback, useState } from 'react'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './auth/AuthContext'
+import Loader from './components/Loader'
+import AppHeader from './components/AppHeader'
 import { apiJson } from './api'
 import AppHeader from './components/AppHeader.jsx'
 import AppFooter from './components/AppFooter.jsx'
@@ -57,26 +60,63 @@ function App() {
           const types = sitter.SitterAnimalTypes?.map((item) => item.animalType.toLowerCase()) || []
           if (!types.includes(filterType)) return false
         }
+import './App.css'
 
-        if (!search.trim()) return true
-        const lower = search.toLowerCase()
-        return [sitter.User?.fullName, sitter.city, sitter.bio, sitter.hourlyRate]
-          .filter(Boolean)
-          .some((value) => value.toString().toLowerCase().includes(lower))
-      })
-      .sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0))
-  }, [sitters, filterType, search])
+const HomePage = lazy(() => import('./pages/HomePage.jsx'))
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
+const SignupPage = lazy(() => import('./pages/SignupPage.jsx'))
+const SitterProfilePage = lazy(() => import('./pages/SitterProfilePage.jsx'))
+const OwnerDashboardPage = lazy(() => import('./pages/OwnerDashboardPage.jsx'))
+const SitterDashboardPage = lazy(() => import('./pages/SitterDashboardPage.jsx'))
+const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage.jsx'))
+const DevToolsPage = lazy(() => import('./pages/DevToolsPage.jsx'))
 
-  async function run(fn) {
-    setError('')
-    setStatus('')
+function ShellSuspense({ children }) {
+  return <Suspense fallback={<Loader label="Laadin…" />}>{children}</Suspense>
+}
+
+function MainLayout() {
+  const { pathname } = useLocation()
+  const isSitterFinder = pathname === '/' || pathname === '/find'
+  const mainClass = isSitterFinder ? 'app-main app-main--home' : 'app-main'
+  return (
+    <>
+      <AppHeader />
+      <main className={mainClass}>
+        <Outlet />
+      </main>
+    </>
+  )
+}
+
+function AuthLayout() {
+  return <Outlet />
+}
+
+function apiOriginFromBase(apiBaseUrl) {
+  return apiBaseUrl.replace(/\/?api\/?$/, '') || 'http://localhost:3001'
+}
+
+function HomeRoute() {
+  const { apiBaseUrl } = useAuth()
+  const [search, setSearch] = useState('')
+  const [rawSitters, setRawSitters] = useState([])
+  const [hasFetched, setHasFetched] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const apiOrigin = apiOriginFromBase(apiBaseUrl)
+
+  const applySearch = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await fn()
-      setLoading(false)
-      return data
-    } catch (e) {
-      setError(e?.message || String(e))
+      const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
+      const list = Array.isArray(data) ? data : data?.sitters || []
+      setRawSitters(list)
+      setHasFetched(true)
+    } catch {
+      setRawSitters([])
+      setHasFetched(true)
+    } finally {
       setLoading(false)
       throw e
     }
@@ -226,7 +266,46 @@ function App() {
       {error ? <div className="error-banner">{error}</div> : null}
       {loading ? <div className="loading-banner">Loading…</div> : null}
     </div>
+    }
+  }, [apiBaseUrl])
+
+  return (
+    <HomePage
+      apiOrigin={apiOrigin}
+      search={search}
+      setSearch={setSearch}
+      rawSitters={rawSitters}
+      hasFetched={hasFetched}
+      loading={loading}
+      onApplySearch={applySearch}
+      onSitterClick={(s) => navigate(`/sitter/${s.id}`)}
+    />
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <ShellSuspense>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomeRoute />} />
+              <Route path="/find" element={<HomeRoute />} />
+              <Route path="/sitter/:id" element={<SitterProfilePage />} />
+              <Route path="/dashboard/owner" element={<OwnerDashboardPage />} />
+              <Route path="/dashboard/sitter" element={<SitterDashboardPage />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/dev" element={<DevToolsPage />} />
+            </Route>
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<SignupPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ShellSuspense>
+      </BrowserRouter>
+    </AuthProvider>
+  )
+}
