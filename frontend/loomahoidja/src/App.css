@@ -869,34 +869,107 @@ button:hover {
 
 .auth-panel {
   grid-template-columns: 1fr 1fr;
+  width: min(1040px, 100%);
+  gap: 0;
+}
+
+.signup-page .auth-panel {
+  width: min(1040px, 100%);
 }
 
 .auth-form-card,
 .auth-side-card {
-  min-height: 340px;
+  min-height: 520px;
 }
 
-.auth-form {
+.auth-form-card {
+  padding: 56px;
+  border-radius: 32px 0 0 32px;
+}
+
+.signup-side-card {
+  padding: 56px;
+  border-radius: 0 32px 32px 0;
+  background: linear-gradient(180deg, #F8D4D7 0%, #ECDCE2 100%);
+  color: #2b1d35;
+  display: flex;
+  align-items: center;
+}
+
+.auth-side-copy {
+  max-width: 360px;
+}
+
+.auth-side-copy h3 {
+  font-size: 2.4rem;
+  line-height: 1.05;
+  margin-bottom: 18px;
+}
+
+.auth-side-copy p {
+  margin: 0;
+  color: #4b3b57;
+  font-size: 1rem;
+}
+
+.role-options {
   display: grid;
   gap: 16px;
-  margin-top: 22px;
+  margin: 24px 0 12px;
 }
 
-.form-row {
-  display: grid;
-  gap: 8px;
+.role-option {
+  width: 100%;
+  border: 1px solid rgba(95, 67, 115, 0.18);
+  border-radius: 24px;
+  padding: 20px 24px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-actions {
-  margin-top: 6px;
+.role-option.active {
+  border-color: #594157;
+  background: #F9EDF4;
 }
 
-.auth-side-card h3 {
-  margin-top: 0;
+.role-option strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
 }
 
-.metric-row {
-  grid-template-columns: 1fr 1fr;
+.role-option span {
+  color: #6b6375;
+  font-size: 0.95rem;
+}
+
+.auth-form .form-row label {
+  color: #4b3b57;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-form input {
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(95, 67, 115, 0.18);
+  background: #fff;
+}
+
+.auth-form .form-actions button {
+  width: 100%;
+  background: #594157;
+  color: #fff;
+  border-radius: 18px;
+  padding: 18px 0;
+  font-weight: 700;
+}
+
+.app-header.auth-header {
+  background: #47344f;
 }
 
 .metric-row div {
