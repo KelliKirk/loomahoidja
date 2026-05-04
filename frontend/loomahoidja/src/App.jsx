@@ -23,7 +23,7 @@ function App() {
       return null
     }
   })
-  const [page, setPage] = useState('home')
+  const [page, setPage] = useState('login')
   const [sitters, setSitters] = useState([])
   const [selectedSitter, setSelectedSitter] = useState(null)
   const [animals, setAnimals] = useState([])
@@ -45,6 +45,9 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('apiCurrentUser', JSON.stringify(currentUser || {}))
+    if (currentUser?.id) {
+      setPage('home')
+    }
   }, [currentUser])
 
   useEffect(() => {
@@ -192,7 +195,7 @@ function App() {
           />
         )}
 
-        {page === 'login' && <LoginPage onLogin={handleLogin} />}
+        {page === 'login' && <LoginPage onLogin={handleLogin} onSignup={() => setPage('signup')} />}
 
         {page === 'signup' && <SignupPage onRegister={handleRegister} />}
 
@@ -210,12 +213,14 @@ function App() {
         )}
       </main>
 
-      <AppFooter
-        baseUrl={baseUrl}
-        onBaseUrlChange={setBaseUrl}
-        currentUser={currentUser}
-        status={status}
-      />
+      {page !== 'login' && page !== 'signup' ? (
+        <AppFooter
+          baseUrl={baseUrl}
+          onBaseUrlChange={setBaseUrl}
+          currentUser={currentUser}
+          status={status}
+        />
+      ) : null}
 
       {error ? <div className="error-banner">{error}</div> : null}
       {loading ? <div className="loading-banner">Loading…</div> : null}

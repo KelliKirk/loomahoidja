@@ -47,6 +47,9 @@ function AuthForm({ mode, onSubmit }) {
         <label>Password</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
+      {!isSignup ? (
+        <div className="login-forgot">Forgot password?</div>
+      ) : null}
       {isSignup ? (
         <>
           <div className="form-row">
@@ -60,7 +63,7 @@ function AuthForm({ mode, onSubmit }) {
         </>
       ) : null}
       <div className="form-row form-actions">
-        <button type="submit">{isSignup ? 'Create account' : 'Login'}</button>
+        <button type="submit">{isSignup ? 'Create account' : 'Log in'}</button>
       </div>
     </form>
   )
