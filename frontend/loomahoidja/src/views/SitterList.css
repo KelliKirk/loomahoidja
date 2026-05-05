@@ -1,0 +1,75 @@
+.hero {
+    text-align: center;
+    padding: 64px 40px 48px;
+}
+
+.hero-title {
+    font-size: 40px;
+    font-weight: 800;
+    color: #34344A;
+    margin-bottom: 12px;
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #34344A;
+    margin-bottom: 32px;
+}
+
+.hero-search {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.hero-input {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid #698996;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #34344A;
+    background: #ffffff;
+    outline: none;
+}
+
+.hero-input::placeholder {
+    color: #698996;
+}
+
+.hero-btn {
+    background: #34344A;
+    color: #ffffff;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-style: semi-bold;
+    cursor: pointer;
+} 
+
+.hero-btn:hover {
+  background: #594157;
+}
+
+.sitter-list-layout {
+    display: flex;
+    gap: 32px;
+    padding: 32px 40px;
+}
+
+.sitter-filters {
+    width: 260px;
+    flex-shrink: 0;
+}
+
+.sitter-cards {
+    flex: 1;
+}
+   
