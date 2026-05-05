@@ -1,20 +1,15 @@
 const { sequelize, DataTypes } = require('../config/database');
 
-const UserModel  = require('./User');
+const User = require('./User');
 const SitterProfile = require('./SitterProfile');
 const SitterAnimalType = require('./SitterAnimalType');
-const Animal = require('./Animal')(sequelize);
+const Animal = require('./Animal'); 
 const Conversation = require('./Conversation');
 const ConversationParticipant = require('./ConversationParticipant');
 const Message = require('./Message');
 const MessageAttachment = require('./MessageAttachment');
 const Notification = require('./Notification');
 
-const User = UserModel(sequelize);
-const SitterProfile = SitterProfileModel(sequelize);
-const SitterAnimalType = SitterAnimalTypeModel(sequelize);
-const Animal = AnimalModel(sequelize);
-// Set up relationships
 User.hasOne(SitterProfile, { foreignKey: 'userId', onDelete: 'CASCADE' });
 SitterProfile.belongsTo(User, { foreignKey: 'userId' });
 
@@ -37,6 +32,7 @@ User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Notification.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = {
+  sequelize,
   User,
   SitterProfile,
   SitterAnimalType,

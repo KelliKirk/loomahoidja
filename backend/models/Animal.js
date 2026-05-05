@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-module.exports = (sequelize) => {
-  const Animal = sequelize.define('Animal', {
+ const Animal = sequelize.define('Animal', {
     id: {
       type: DataTypes.BIGINT.UNSIGNED,
       primaryKey: true,
@@ -50,5 +50,4 @@ module.exports = (sequelize) => {
     underscored: false,
   });
 
-  return Animal;
-};
+module.exports = Animal;
