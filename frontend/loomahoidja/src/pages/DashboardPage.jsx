@@ -341,11 +341,12 @@ function DashboardPage({
         <div className="owner-topbar-start">
           <button
             type="button"
-            className="owner-topbar-logo"
+            className="owner-topbar-home"
             onClick={() => onNavigate('home')}
             aria-label="Loomahoidja home"
           >
             <img src={logoMarkUrl} className="owner-brand-logo" alt="" width={44} height={36} decoding="async" />
+            <span className="owner-topbar-wordmark">Loomahoidja</span>
           </button>
           <div className="owner-topbar-brand">
             <button type="button" onClick={() => onNavigate('home')}>
@@ -366,9 +367,14 @@ function DashboardPage({
             </button>
           </div>
         </div>
-        <button className="owner-avatar-button" type="button" onClick={onLogout}>
-          {initials}
-        </button>
+        <div className="owner-topbar-actions">
+          <div className="owner-topbar-avatar" title={currentUser.fullName || currentUser.email || ''} aria-hidden="true">
+            {initials}
+          </div>
+          <Button variant="outline" className="btnSm owner-topbar-logout" type="button" onClick={onLogout}>
+            Log out
+          </Button>
+        </div>
       </header>
 
       <aside className="owner-sidebar">

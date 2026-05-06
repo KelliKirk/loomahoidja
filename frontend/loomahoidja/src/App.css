@@ -2746,16 +2746,68 @@ button:hover {
   flex: 1;
 }
 
-.owner-topbar-logo {
+.owner-topbar-home {
   border: 0;
   padding: 0;
   margin: 0;
   background: transparent;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 10px;
   flex-shrink: 0;
   transform: none;
+  font: inherit;
+}
+
+.owner-topbar-wordmark {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: #ebbab9;
+  white-space: nowrap;
+}
+
+.owner-topbar-home:hover .owner-topbar-wordmark {
+  color: #fff;
+}
+
+.owner-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.owner-topbar-actions .btnOutline {
+  color: #ebbab9;
+  border-color: #ebbab9;
+}
+
+.owner-topbar-actions .btnOutline:hover:not(:disabled) {
+  color: #fff;
+  border-color: #ebbab9;
+  background: rgba(235, 186, 185, 0.18);
+}
+
+.owner-topbar-actions .btnOutline:focus-visible {
+  outline: 2px solid #ebbab9;
+  outline-offset: 2px;
+}
+
+.owner-topbar-avatar {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(235, 186, 185, 0.22);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 2px solid rgba(235, 186, 185, 0.45);
 }
 
 .owner-topbar-brand {
@@ -2766,7 +2818,7 @@ button:hover {
   flex-wrap: wrap;
 }
 
-.owner-topbar button {
+.owner-topbar-brand > button {
   border: 0;
   border-radius: 11px;
   background: transparent;
@@ -2777,7 +2829,7 @@ button:hover {
   transform: none;
 }
 
-.owner-topbar button.active {
+.owner-topbar-brand > button.active {
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -2799,20 +2851,6 @@ button:hover {
   font-weight: 900;
 }
 
-.owner-topbar .owner-avatar-button {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  background: #e9b9c1;
-  color: #5b3d5a;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
 
 .owner-content {
   width: min(960px, calc(100% - 56px));
