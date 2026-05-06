@@ -2612,22 +2612,34 @@ button:hover {
   color: #34344a;
 }
 
+/* Owner: full-width top bar (#3D2C3B) including logo; sidebar starts below it */
+.owner-dashboard--with-topbar {
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'od-top od-top'
+    'od-side od-main';
+}
+
+.owner-dashboard--with-topbar > .owner-topbar {
+  grid-area: od-top;
+}
+
+.owner-dashboard--with-topbar > .owner-sidebar {
+  grid-area: od-side;
+  min-height: 0;
+}
+
+.owner-dashboard--with-topbar > .owner-workspace {
+  grid-area: od-main;
+}
+
 .owner-sidebar {
   min-height: 100vh;
   background: #252028;
   color: #edd4d7;
   display: flex;
   flex-direction: column;
-}
-
-.owner-brand {
-  height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0 22px;
-  background: #252028;
-  box-sizing: border-box;
 }
 
 .owner-brand-logo {
@@ -2653,7 +2665,7 @@ button:hover {
 
 .owner-profile {
   min-height: 118px;
-  padding: 46px 18px 28px;
+  padding: 32px 18px 28px;
   display: grid;
   align-content: end;
 }
@@ -2674,7 +2686,7 @@ button:hover {
 }
 
 .owner-side-nav {
-  padding-top: 38px;
+  padding-top: 28px;
   display: grid;
   gap: 0;
 }
@@ -2720,16 +2732,38 @@ button:hover {
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  padding: 0 42px 0 30px;
+  padding: 0 42px 0 22px;
   background: #3d2c3b;
   border-bottom: 1px solid rgba(235, 186, 185, 0.18);
   box-sizing: border-box;
+}
+
+.owner-topbar-start {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
+  flex: 1;
+}
+
+.owner-topbar-logo {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transform: none;
 }
 
 .owner-topbar-brand {
   display: flex;
   align-items: center;
   gap: 28px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .owner-topbar button {
@@ -3357,6 +3391,10 @@ button:hover {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
+  .owner-dashboard--with-topbar {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
   .owner-content {
     width: min(900px, calc(100% - 36px));
   }
@@ -3371,11 +3409,19 @@ button:hover {
     grid-template-columns: 1fr;
   }
 
+  .owner-dashboard--with-topbar {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'od-top'
+      'od-side'
+      'od-main';
+  }
+
   .owner-sidebar {
     min-height: auto;
   }
 
-  .owner-brand,
   .owner-profile {
     display: none;
   }

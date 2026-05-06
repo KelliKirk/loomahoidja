@@ -260,28 +260,17 @@ function DashboardPage({
   const mockOwnerRating = 4.9
 
   return (
-    <section className="owner-dashboard">
-      <aside className="owner-sidebar">
-        <div className="owner-brand" aria-label="Loomahoidja">
-          <img src={logoMarkUrl} className="owner-brand-logo" alt="" width={44} height={36} decoding="async" />
-        </div>
-
-        <div className="owner-profile">
-          <strong>{currentUser.fullName || 'Pet owner'}</strong>
-          <span>Pet owner</span>
-        </div>
-
-        <nav className="owner-side-nav" aria-label="Owner dashboard">
-          {navBtn('overview', 'Overview', faChartLine)}
-          {navBtn('pets', 'My pets', faPaw)}
-          {navBtn('bookings', 'Bookings', faCalendarCheck)}
-          {navBtn('messages', 'Messages', faEnvelope)}
-          {navBtn('profile', 'Profile settings', faUserGear)}
-        </nav>
-      </aside>
-
-      <div className="owner-workspace">
-        <header className="owner-topbar">
+    <section className="owner-dashboard owner-dashboard--with-topbar">
+      <header className="owner-topbar">
+        <div className="owner-topbar-start">
+          <button
+            type="button"
+            className="owner-topbar-logo"
+            onClick={() => onNavigate('home')}
+            aria-label="Loomahoidja home"
+          >
+            <img src={logoMarkUrl} className="owner-brand-logo" alt="" width={44} height={36} decoding="async" />
+          </button>
           <div className="owner-topbar-brand">
             <button type="button" onClick={() => onNavigate('home')}>
               Find a sitter
@@ -300,11 +289,28 @@ function DashboardPage({
               ) : null}
             </button>
           </div>
-          <button className="owner-avatar-button" type="button" onClick={onLogout}>
-            {initials}
-          </button>
-        </header>
+        </div>
+        <button className="owner-avatar-button" type="button" onClick={onLogout}>
+          {initials}
+        </button>
+      </header>
 
+      <aside className="owner-sidebar">
+        <div className="owner-profile">
+          <strong>{currentUser.fullName || 'Pet owner'}</strong>
+          <span>Pet owner</span>
+        </div>
+
+        <nav className="owner-side-nav" aria-label="Owner dashboard">
+          {navBtn('overview', 'Overview', faChartLine)}
+          {navBtn('pets', 'My pets', faPaw)}
+          {navBtn('bookings', 'Bookings', faCalendarCheck)}
+          {navBtn('messages', 'Messages', faEnvelope)}
+          {navBtn('profile', 'Profile settings', faUserGear)}
+        </nav>
+      </aside>
+
+      <div className="owner-workspace">
         <div className="owner-content">
           {section !== 'profile' && (
             <div className="owner-welcome">
