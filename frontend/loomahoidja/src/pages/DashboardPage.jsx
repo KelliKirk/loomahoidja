@@ -283,14 +283,6 @@ function DashboardPage({
       <div className="owner-workspace">
         <header className="owner-topbar">
           <div className="owner-topbar-brand">
-            <img
-              src={logoMarkUrl}
-              className="owner-topbar-logo"
-              alt=""
-              width={36}
-              height={30}
-              decoding="async"
-            />
             <button type="button" onClick={() => onNavigate('home')}>
               Find a sitter
             </button>

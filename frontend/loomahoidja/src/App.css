@@ -2625,8 +2625,8 @@ button:hover {
   height: 58px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 16px;
+  justify-content: flex-start;
+  padding: 0 22px;
   background: #5f4460;
 }
 
@@ -2729,15 +2729,6 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 28px;
-}
-
-.owner-topbar-logo {
-  height: 30px;
-  width: auto;
-  max-width: 120px;
-  object-fit: contain;
-  display: block;
-  flex-shrink: 0;
 }
 
 .owner-topbar button {
