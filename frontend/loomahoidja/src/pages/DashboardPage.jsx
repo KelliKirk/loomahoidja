@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCalendarCheck,
@@ -15,7 +14,10 @@ import {
   faUserGear,
 } from '@fortawesome/free-solid-svg-icons'
 import logoMarkUrl from '../assets/logo.png?url'
+import Avatar from '../components/Avatar'
 import Button from '../components/Button'
+import { apiForm } from '../api'
+import { coordsForCity, osmEmbedUrl } from '../lib/geo'
 
 const INBOX_STORAGE_KEY = 'loom_owner_inbox_v1'
 const CHAT_STORAGE_KEY = 'loom_owner_chat_v1'
@@ -95,6 +97,12 @@ function petTypeIcon(type) {
   return faPaw
 }
 
+function memberSinceYear(user) {
+  if (!user?.createdAt) return '2026'
+  const d = new Date(user.createdAt)
+  return Number.isNaN(d.getTime()) ? '2026' : String(d.getFullYear())
+}
+
 function DashboardPage({
   currentUser,
   animals,
@@ -104,7 +112,7 @@ function DashboardPage({
   apiBaseUrl,
   token,
   availableSitterCount = 0,
-  mySitterProfile = null,
+  onUserUpdated,
 }) {
   const [section, setSection] = useState('overview')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -120,6 +128,9 @@ function DashboardPage({
   const [inbox, setInbox] = useState(loadInboxFromStorage)
   const [chatThread, setChatThread] = useState(loadChatFromStorage)
   const [chatInput, setChatInput] = useState('')
+  const [photoUploadError, setPhotoUploadError] = useState('')
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const ownerPhotoInputRef = useRef(null)
 
   useEffect(() => {
     try {
@@ -158,10 +169,20 @@ function DashboardPage({
     [apiBaseUrl],
   )
 
-  const heroPetPhoto =
-    displayPets[0]?.photo != null && String(displayPets[0].photo).trim() !== ''
-      ? `${assetOrigin}/uploads/${displayPets[0].photo}`
+  const ownerPhotoUrl =
+    currentUser.photo != null && String(currentUser.photo).trim() !== ''
+      ? `${assetOrigin}/uploads/profiles/${currentUser.photo}`
       : null
+
+  const petSpeciesTags = useMemo(() => {
+    const raw = [...new Set(displayPets.map((p) => p.animalType).filter(Boolean))]
+    return raw.map((t) => t.charAt(0).toUpperCase() + String(t).slice(1).toLowerCase())
+  }, [displayPets])
+
+  const ownerMapUrl = useMemo(() => {
+    const { lat, lng } = coordsForCity(currentUser?.city)
+    return osmEmbedUrl(lat, lng)
+  }, [currentUser?.city])
 
   const firstName = currentUser.fullName?.split(' ')[0] || 'there'
   const initials = currentUser.fullName
@@ -223,6 +244,29 @@ function DashboardPage({
     }
   }
 
+  const handleOwnerPhotoSelected = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !onUserUpdated || !token?.trim()) return
+    setPhotoUploadError('')
+    setPhotoUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('photo', file)
+      const updated = await apiForm({
+        baseUrl: apiBaseUrl,
+        path: '/users/me/photo',
+        token,
+        formData: fd,
+      })
+      onUserUpdated(updated)
+    } catch (err) {
+      setPhotoUploadError(err.message || 'Upload failed')
+    } finally {
+      setPhotoUploading(false)
+    }
+  }
+
   const handleChatSend = (e) => {
     e.preventDefault()
     const text = chatInput.trim()
@@ -251,13 +295,6 @@ function DashboardPage({
     messages: 'Messages',
     profile: 'Profile & settings',
   }
-
-  const profilePhotoUrl = mySitterProfile?.photo
-    ? `${assetOrigin}/uploads/profiles/${mySitterProfile.photo}`
-    : null
-
-  const mockOwnerReviews = 12
-  const mockOwnerRating = 4.9
 
   return (
     <section className="owner-dashboard owner-dashboard--with-topbar">
@@ -466,10 +503,6 @@ function DashboardPage({
             <div className="owner-section-panel">
               <section className="owner-card owner-pets-panel owner-pets-panel--full">
                 <h2>My pets</h2>
-                <p className="typeBodySmall textMuted owner-section-lead">
-                  Data is loaded from the server while you are signed in as an owner. If the list is empty, check your
-                  API URL and token.
-                </p>
                 <div className="owner-pet-list">
                   {displayPets.length === 0 ? (
                     <p className="owner-empty-hint">No pets yet. Add your first one with the button below.</p>
@@ -569,36 +602,57 @@ function DashboardPage({
 
           {section === 'profile' && (
             <>
-              <section className="owner-public-profile-hero cardSurface">
-                <div className="owner-public-profile-heroInner">
-                  {heroPetPhoto ? (
-                    <img className="owner-public-profile-photo" src={heroPetPhoto} alt="" />
-                  ) : (
-                    <div className="owner-public-profile-fallback" aria-hidden="true">
-                      {initials}
-                    </div>
-                  )}
-                  <div className="owner-public-profile-text">
-                    <h1 className="typeH1 owner-public-profile-name">{currentUser.fullName || 'Pet owner'}</h1>
+              <section className="profileHero cardSurface">
+                <div className="profileHeroInner">
+                  <div className="owner-profile-avatar-block">
+                    <button
+                      type="button"
+                      className="owner-profile-avatar-hit"
+                      onClick={() => ownerPhotoInputRef.current?.click()}
+                      disabled={photoUploading || !onUserUpdated}
+                      aria-label={ownerPhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
+                    >
+                      <Avatar src={ownerPhotoUrl} name={currentUser.fullName} size={96} />
+                    </button>
+                    <input
+                      ref={ownerPhotoInputRef}
+                      type="file"
+                      className="owner-photo-file-input"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleOwnerPhotoSelected}
+                    />
+                    {photoUploading ? (
+                      <p className="typeCaption textMuted owner-profile-upload-hint">Uploading…</p>
+                    ) : (
+                      <p className="typeCaption textMuted owner-profile-upload-hint">
+                        {ownerPhotoUrl ? 'Click photo to replace' : 'Click to add a photo'}
+                      </p>
+                    )}
+                    {photoUploadError ? <p className="formError owner-profile-upload-error">{photoUploadError}</p> : null}
+                  </div>
+                  <div className="profileHeroText">
+                    <h1 className="typeH1 profileName">{currentUser.fullName || 'Pet owner'}</h1>
                     <p className="typeBodySmall textMuted">
-                      {currentUser.city || '—'} • Member since 2026
+                      {currentUser.city || '—'} • Member since {memberSinceYear(currentUser)}
                     </p>
                     <div className="tagRow">
-                      {displayPets.length === 0 ? (
-                        <span className="tag">No pets yet</span>
+                      {petSpeciesTags.length === 0 ? (
+                        <span className="tag">No pet types yet</span>
                       ) : (
-                        displayPets.map((p) => (
-                          <span key={p.id || p.name} className="tag">
-                            {p.name} ({p.animalType || 'pet'})
+                        petSpeciesTags.map((t) => (
+                          <span key={t} className="tag">
+                            {t}
                           </span>
                         ))
                       )}
                     </div>
                     <p className="typeBody">
-                      ★ {mockOwnerRating.toFixed(1)} • {mockOwnerReviews} reviews
+                      {displayPets.length === 0
+                        ? 'No pets on your account yet — add them under My pets.'
+                        : `${displayPets.length} pet${displayPets.length === 1 ? '' : 's'} on your account`}
                     </p>
                   </div>
-                  <div className="owner-public-profile-aside">
+                  <div className="profileHeroAside">
                     <Button variant="primary" className="btnWide" type="button" onClick={() => onNavigate('home')}>
                       Find a sitter
                     </Button>
@@ -609,80 +663,79 @@ function DashboardPage({
                 </div>
               </section>
 
-              <div className="owner-profile-columns">
-                <div className="owner-profile-main-col">
+              <div className="profileColumns">
+                <div className="profileMain">
                   <section className="cardSurface blockPad">
                     <h2 className="typeH2">About</h2>
                     <p className="typeBody">
-                      Pet owner on Loomahoidja. Keep your pet profiles up to date so sitters know how to give the best
-                      care.
+                      You are registered as a pet owner on Loomahoidja. Keeping your profile, contact details, and pet
+                      information up to date helps sitters prepare for safe, happy visits.
                     </p>
                   </section>
                   <section className="cardSurface blockPad">
-                    <h2 className="typeH2">My pets</h2>
+                    <h2 className="typeH2">Pets on your account</h2>
+                    {petSpeciesTags.length > 0 ? (
+                      <div className="tagRow" style={{ marginBottom: '12px' }}>
+                        {petSpeciesTags.map((t) => (
+                          <span key={`sp-${t}`} className="tag">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                     {displayPets.length === 0 ? (
-                      <p className="typeBody textMuted">No pets registered yet.</p>
+                      <p className="typeBody textMuted">No pets registered yet. Use My pets to add your first one.</p>
                     ) : (
                       <ul className="typeBody listPlain">
                         {displayPets.map((p) => (
                           <li key={p.id || p.name}>
                             <strong>{p.name}</strong> — {p.animalType || 'Pet'}
                             {p.age != null && p.age !== '' ? `, age ${p.age}` : ''}
+                            {p.notes ? <span className="textMuted"> — {p.notes}</span> : null}
                           </li>
                         ))}
                       </ul>
                     )}
                   </section>
-                </div>
-                <aside className="owner-profile-aside-col">
-                  <section className="owner-card">
-                    <h2>Account</h2>
+                  <section className="cardSurface blockPad">
+                    <h2 className="typeH2">Contact</h2>
+                    <p className="typeBody">
+                      Sitters may use your email or phone to coordinate before a booking. Make sure these are current in
+                      your account details (sidebar / account settings when available).
+                    </p>
                     <dl className="owner-dl">
-                      <dt>Name</dt>
-                      <dd>{currentUser.fullName || '—'}</dd>
                       <dt>Email</dt>
                       <dd>{currentUser.email || '—'}</dd>
                       <dt>Phone</dt>
                       <dd>{currentUser.phone || '—'}</dd>
+                    </dl>
+                  </section>
+                </div>
+                <aside className="profileAside">
+                  <section className="cardSurface blockPad">
+                    <h2 className="typeH3">Account</h2>
+                    <dl className="owner-dl">
+                      <dt>Name</dt>
+                      <dd>{currentUser.fullName || '—'}</dd>
+                      <dt>Role</dt>
+                      <dd style={{ textTransform: 'capitalize' }}>{currentUser.role || '—'}</dd>
                       <dt>City</dt>
                       <dd>{currentUser.city || '—'}</dd>
-                      <dt>Role</dt>
-                      <dd>{currentUser.role || '—'}</dd>
                     </dl>
-                    <p className="typeBodySmall textMuted">Profile editing will be added in a future update.</p>
                   </section>
-
-                  <section className="owner-card">
-                    <h2>Sitter profile</h2>
-                    {mySitterProfile ? (
-                      <>
-                        <p className="typeBody">
-                          You also have a sitter profile on this account. Open the public page or manage it from the
-                          sitter dashboard / Dev tools.
-                        </p>
-                        <dl className="owner-dl">
-                          <dt>Hourly rate</dt>
-                          <dd>{mySitterProfile.hourlyRate != null ? `${mySitterProfile.hourlyRate} €` : '—'}</dd>
-                          <dt>City</dt>
-                          <dd>{mySitterProfile.city || '—'}</dd>
-                          <dt>Bio</dt>
-                          <dd>{mySitterProfile.bio || '—'}</dd>
-                        </dl>
-                        {profilePhotoUrl ? (
-                          <img className="owner-profile-thumb" src={profilePhotoUrl} alt="" />
-                        ) : null}
-                        <div className="owner-profile-actions">
-                          <Link className="btn btnPrimary" to={`/sitter/${mySitterProfile.id}`}>
-                            View public profile
-                          </Link>
-                        </div>
-                      </>
-                    ) : (
-                      <p className="typeBody">
-                        No sitter profile on this account. That is expected if you registered only as an owner. Create a
-                        sitter profile by signing up as a sitter or using Dev tools.
-                      </p>
-                    )}
+                  <section className="cardSurface blockPad">
+                    <h2 className="typeH3">Location</h2>
+                    <p className="typeBodySmall textMuted">
+                      Approximate area — exact address is shared with sitters only when you choose.
+                    </p>
+                    <div className="mapFrame">
+                      <iframe
+                        title="Approximate location"
+                        src={ownerMapUrl}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
                   </section>
                 </aside>
               </div>

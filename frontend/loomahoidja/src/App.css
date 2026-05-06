@@ -3213,16 +3213,6 @@ button:hover {
   font-weight: 600;
 }
 
-.owner-profile-thumb {
-  max-width: 160px;
-  border-radius: 10px;
-  margin-top: 12px;
-}
-
-.owner-profile-actions {
-  margin-top: 16px;
-}
-
 .owner-pet-notes {
   display: block;
   margin-top: 4px;
@@ -3310,80 +3300,55 @@ button:hover {
   min-width: 44px;
 }
 
-.owner-public-profile-hero {
-  margin-bottom: 24px;
-}
-
-.owner-public-profile-heroInner {
+.owner-profile-avatar-block {
   display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 24px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.owner-public-profile-photo {
-  width: 96px;
-  height: 96px;
+.owner-profile-avatar-hit {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
   border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 8px 18px rgba(61, 41, 59, 0.15);
+  line-height: 0;
+  transform: none;
 }
 
-.owner-public-profile-fallback {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--color-accent-2);
-  border: 3px solid #fff;
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--color-main);
-  box-shadow: 0 8px 18px rgba(61, 41, 59, 0.15);
+.owner-profile-avatar-hit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.owner-public-profile-text {
-  flex: 1;
-  min-width: 200px;
+.owner-profile-avatar-hit:focus-visible {
+  outline: 2px solid var(--color-accent-1);
+  outline-offset: 3px;
 }
 
-.owner-public-profile-name {
-  margin: 0 0 8px;
+.owner-photo-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.owner-public-profile-aside {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 200px;
+.owner-profile-upload-hint {
+  margin: 0;
+  max-width: 140px;
 }
 
-.owner-profile-columns {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 24px;
-  align-items: start;
-}
-
-.owner-profile-main-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.owner-profile-aside-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-@media (max-width: 960px) {
-  .owner-profile-columns {
-    grid-template-columns: 1fr;
-  }
+.owner-profile-upload-error {
+  margin: 0;
+  max-width: 220px;
+  font-size: 0.8rem;
 }
 
 @media (max-width: 1100px) {

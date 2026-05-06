@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { DataTypes } = require('sequelize');
 const app = require('./App');
 const { sequelize } = require('./config/database');
 
@@ -8,7 +9,20 @@ sequelize
     console.log('✓ Database connected successfully');
     return sequelize.sync({ alter: false });
   })
-  .then(() => {
+  .then(async () => {
+    const qi = sequelize.getQueryInterface();
+    try {
+      const desc = await qi.describeTable('users');
+      if (desc && !desc.photo) {
+        await qi.addColumn('users', 'photo', {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+        });
+        console.log('✓ Added users.photo column');
+      }
+    } catch (e) {
+      console.warn('Could not ensure users.photo column:', e.message);
+    }
     console.log('✓ Models synced with database');
   })
   .catch((err) => {

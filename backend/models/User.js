@@ -28,6 +28,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(100),
     allowNull: true,
   },
+  photo: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   role: {
     type: DataTypes.ENUM('owner', 'sitter'),
     allowNull: false,

@@ -58,6 +58,8 @@ class UserController {
           phone: user.phone,
           city: user.city,
           role: user.role,
+          photo: user.photo,
+          createdAt: user.createdAt,
         },
         token,
       });
@@ -69,7 +71,7 @@ class UserController {
   static async list(req, res, next) {
     try {
       const users = await User.findAll({
-        attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'createdAt'],
+        attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'photo', 'createdAt'],
         order: [['id', 'DESC']],
       });
       res.json({ count: users.length, users });
@@ -81,10 +83,32 @@ class UserController {
   static async getOne(req, res, next) {
     try {
       const user = await User.findByPk(req.params.id, {
-        attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'createdAt'],
+        attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'photo', 'createdAt'],
       });
       if (!user) return res.status(404).json({ error: 'User not found' });
       res.json(user);
+    } catch (err) {
+      next(err);
+    }
+  }
+  static async uploadMyPhoto(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      const user = await User.findByPk(req.user.id);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      await user.update({ photo: req.file.filename });
+      return res.json({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        city: user.city,
+        role: user.role,
+        photo: user.photo,
+        createdAt: user.createdAt,
+      });
     } catch (err) {
       next(err);
     }

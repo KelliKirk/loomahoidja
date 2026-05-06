@@ -5,11 +5,10 @@ import { apiJson } from '../api'
 import DashboardPage from './DashboardPage.jsx'
 
 export default function OwnerDashboardPage() {
-  const { user, token, apiBaseUrl, logout } = useAuth()
+  const { user, token, apiBaseUrl, logout, setSession, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [animals, setAnimals] = useState([])
   const [sitterCount, setSitterCount] = useState(0)
-  const [mySitterProfile, setMySitterProfile] = useState(null)
 
   const handleNavigate = useCallback(
     (target) => {
@@ -44,21 +43,18 @@ export default function OwnerDashboardPage() {
         const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
         const list = Array.isArray(data) ? data : data?.sitters || []
         if (!cancelled) setSitterCount(list.length)
-        if (!cancelled && user?.id) {
-          const mine = list.find((s) => Number(s.userId) === Number(user.id))
-          setMySitterProfile(mine || null)
-        }
       } catch {
-        if (!cancelled) {
-          setSitterCount(0)
-          setMySitterProfile(null)
-        }
+        if (!cancelled) setSitterCount(0)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [apiBaseUrl, user?.id])
+  }, [apiBaseUrl])
+
+  useEffect(() => {
+    refreshUser()
+  }, [refreshUser])
 
   useEffect(() => {
     let cancelled = false
@@ -94,7 +90,7 @@ export default function OwnerDashboardPage() {
       apiBaseUrl={apiBaseUrl}
       token={token}
       availableSitterCount={sitterCount}
-      mySitterProfile={mySitterProfile}
+      onUserUpdated={(next) => setSession(token, next)}
     />
   )
 }

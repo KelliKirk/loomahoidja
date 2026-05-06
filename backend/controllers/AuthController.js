@@ -30,7 +30,16 @@ class AuthController {
 
       return res.status(201).json({
         message: 'Registered',
-        user: { id: user.id, email: user.email, fullName: user.fullName, phone: user.phone, city: user.city, role: user.role },
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          phone: user.phone,
+          city: user.city,
+          role: user.role,
+          photo: user.photo,
+          createdAt: user.createdAt,
+        },
         token,
       });
     } catch (err) {
@@ -59,7 +68,16 @@ class AuthController {
 
       return res.status(200).json({
         message: 'Logged in',
-        user: { id: user.id, email: user.email, fullName: user.fullName, phone: user.phone, city: user.city, role: user.role },
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          phone: user.phone,
+          city: user.city,
+          role: user.role,
+          photo: user.photo,
+          createdAt: user.createdAt,
+        },
         token,
       });
     } catch (err) {
@@ -67,7 +85,7 @@ class AuthController {
     }
   }
 
-  static generateTestToken(req, res) {
+  static async generateTestToken(req, res) {
     try {
       const { userId = 1, email = 'test@example.com', role = 'owner' } = req.body;
       const secret = process.env.JWT_SECRET;
@@ -82,16 +100,38 @@ class AuthController {
         { expiresIn: '7d' }
       );
 
+      let userPayload = { id: userId, email, role };
+      try {
+        const row = await User.findByPk(userId, {
+          attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'photo', 'createdAt'],
+        });
+        if (row) userPayload = row.get({ plain: true });
+      } catch {
+        /* ignore */
+      }
+
       return res.status(200).json({
         message: 'Test token generated',
         token,
-        user: { id: userId, email, role },
+        user: userPayload,
         expiresIn: '7 days',
         instructions: 'Copy the token and add to Postman: Authorization: Bearer {token}'
       });
     } catch (error) {
       console.error('Error generating token:', error);
       return res.status(500).json({ error: 'Failed to generate token' });
+    }
+  }
+
+  static async me(req, res, next) {
+    try {
+      const user = await User.findByPk(req.user.id, {
+        attributes: ['id', 'email', 'fullName', 'phone', 'city', 'role', 'photo', 'createdAt'],
+      });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      return res.json(user.get({ plain: true }));
+    } catch (err) {
+      next(err);
     }
   }
 

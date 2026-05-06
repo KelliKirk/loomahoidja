@@ -78,6 +78,18 @@ export function AuthProvider({ children }) {
     [apiBaseUrl, setSession],
   )
 
+  const refreshUser = useCallback(async () => {
+    if (!token?.trim()) return null
+    try {
+      const u = await apiJson({ baseUrl: apiBaseUrl, path: '/auth/me', token })
+      setUserState(u)
+      localStorage.setItem(LS_USER, JSON.stringify(u))
+      return u
+    } catch {
+      return null
+    }
+  }, [apiBaseUrl, token])
+
   const register = useCallback(
     async ({ email, password, fullName, role, phone, city }) => {
       try {
@@ -111,12 +123,13 @@ export function AuthProvider({ children }) {
       token,
       user,
       setSession,
+      refreshUser,
       login,
       register,
       logout,
       isLoggedIn: Boolean(token && token.trim()),
     }),
-    [apiBaseUrl, setApiBaseUrl, token, user, setSession, login, register, logout],
+    [apiBaseUrl, setApiBaseUrl, token, user, setSession, refreshUser, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
