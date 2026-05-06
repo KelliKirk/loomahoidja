@@ -19,6 +19,7 @@ const upload = multer({
 });
 
 router.post('/me/photo', auth, upload.single('photo'), UserController.uploadMyPhoto);
+router.patch('/me', auth, UserController.updateMe);
 router.post('/', UserController.create);
 router.get('/', UserController.list);
 router.get('/:id', UserController.getOne);

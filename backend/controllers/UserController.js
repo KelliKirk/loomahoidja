@@ -91,6 +91,46 @@ class UserController {
       next(err);
     }
   }
+
+  static async updateMe(req, res, next) {
+    try {
+      const { fullName, phone, city } = req.body;
+      const user = await User.findByPk(req.user.id);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const updates = {};
+      if (fullName !== undefined) {
+        const t = String(fullName).trim();
+        if (!t) return res.status(400).json({ error: 'fullName cannot be empty' });
+        updates.fullName = t;
+      }
+      if (phone !== undefined) {
+        updates.phone = phone === null || String(phone).trim() === '' ? null : String(phone).trim();
+      }
+      if (city !== undefined) {
+        updates.city = city === null || String(city).trim() === '' ? null : String(city).trim();
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No valid fields to update' });
+      }
+
+      await user.update(updates);
+      return res.json({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        city: user.city,
+        role: user.role,
+        photo: user.photo,
+        createdAt: user.createdAt,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async uploadMyPhoto(req, res, next) {
     try {
       if (!req.file) {
