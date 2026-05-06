@@ -21,7 +21,8 @@ function validateCreateAnimalPayload(payload) {
 function normalizeAnimalCreateData({ ownerId, body, file }) {
   const { name, animalType, age, goodWithAnimals, goodWithChildren, notes } = body || {};
   
-  const toBool = (val) => val === '1' || val === 1 || val === true;
+  const toBool = (val) =>
+    val === true || val === 1 || val === '1' || val === 'true';
   
   return {
       ownerId,

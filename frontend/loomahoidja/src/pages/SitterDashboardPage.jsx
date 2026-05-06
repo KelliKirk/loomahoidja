@@ -23,7 +23,6 @@ function daysInMonth(year, month) {
 export default function SitterDashboardPage() {
   const { user } = useAuth()
   const firstName = user?.fullName?.split(' ')[0] || 'Sitter'
-  const initials = user?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'
 
   const [bookingRequests, setBookingRequests] = useState(INITIAL_REQUESTS)
   const today = new Date()

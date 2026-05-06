@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { apiForm, apiJson } from '../api'
 
 export default function SittersCard({ baseUrl, currentUser, run }) {
   const [sitters, setSitters] = useState([])
   const [busy, setBusy] = useState(false)
 
-  const [userId, setUserId] = useState('')
+  const [userId, setUserId] = useState(() => String(currentUser?.id || ''))
   const [hourlyRate, setHourlyRate] = useState('10')
   const [bio, setBio] = useState('')
   const [hasAnimals, setHasAnimals] = useState(false)
@@ -13,10 +13,6 @@ export default function SittersCard({ baseUrl, currentUser, run }) {
   const [city, setCity] = useState('')
   const [photo, setPhoto] = useState(null)
   const [animalTypes, setAnimalTypes] = useState(['dog'])
-
-  useEffect(() => {
-    setUserId(String(currentUser?.id || ''))
-  }, [currentUser?.id])
 
   const options = ['dog', 'cat', 'bird', 'fish', 'rodents', 'other']
 
@@ -48,6 +44,7 @@ export default function SittersCard({ baseUrl, currentUser, run }) {
 
       {currentUser?.role === 'sitter' ? (
         <form
+          key={String(currentUser?.id ?? 'guest')}
           onSubmit={(e) => {
             e.preventDefault()
             setBusy(true)

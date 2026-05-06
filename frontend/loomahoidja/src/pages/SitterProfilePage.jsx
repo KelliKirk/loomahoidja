@@ -74,7 +74,7 @@ export default function SitterProfilePage() {
     if (!sitter) return new Set()
     const blocked = getBlockedDateSet(sitter.id, tabSessionId)
     return mergeUnavailableIntoSet(sitter.id, blocked)
-  }, [sitter, holdTick])
+  }, [sitter, holdTick]) // eslint-disable-line react-hooks/exhaustive-deps -- holdTick invalidates when booking-hold bus updates
 
   useEffect(() => {
     return subscribeBooking(() => setHoldTick((t) => t + 1))

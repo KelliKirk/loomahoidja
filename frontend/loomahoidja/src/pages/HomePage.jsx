@@ -155,7 +155,9 @@ export default function HomePage({
     return list
   }, [baseList, search, hourly, animalTypes, conditions, selectedCities, sortBy])
 
+  // Reset infinite scroll when filter inputs change (not an external subscription).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional pagination reset on filter change
     setVisibleCount(6)
   }, [filtered.length, search, hourly, animalTypes, conditions, selectedCities, sortBy, hasFetched])
 

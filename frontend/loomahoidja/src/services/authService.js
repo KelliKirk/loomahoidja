@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiJson } from '../api'
+
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export async function loginUser ({ email, password }) {
     return apiJson({ baseUrl: BASE,  path: '/auth/login', method: 'POST', body: { email, password } });
