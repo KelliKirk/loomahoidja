@@ -18,6 +18,7 @@ import Avatar from '../components/Avatar'
 import Button from '../components/Button'
 import { apiForm } from '../api'
 import { coordsForCity, osmEmbedUrl } from '../lib/geo'
+import { initialsFromFullName } from '../lib/userDisplay'
 
 const INBOX_STORAGE_KEY = 'loom_owner_inbox_v1'
 const CHAT_STORAGE_KEY = 'loom_owner_chat_v1'
@@ -185,12 +186,7 @@ function DashboardPage({
   }, [currentUser?.city])
 
   const firstName = currentUser.fullName?.split(' ')[0] || 'there'
-  const initials = currentUser.fullName
-    ?.split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'PP'
+  const initials = initialsFromFullName(currentUser.fullName)
 
   const resetForm = () => {
     setName('')

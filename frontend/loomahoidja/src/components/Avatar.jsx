@@ -1,10 +1,7 @@
+import { initialsFromFullName } from '../lib/userDisplay'
+
 export default function Avatar({ src, name, size = 48 }) {
-  const initials = String(name || '?')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join('')
+  const initials = initialsFromFullName(name)
 
   const style = { width: size, height: size, fontSize: Math.round(size * 0.36) }
 
