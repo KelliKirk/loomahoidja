@@ -3,6 +3,16 @@ import logoUrl from '../assets/logo.png'
 import { useAuth } from '../auth/AuthContext'
 import Button from './Button'
 
+function initialsFromFullName(fullName) {
+  const name = String(fullName || '').trim()
+  if (!name) return '?'
+  const parts = name.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase() || '?'
+  }
+  return (parts[0].slice(0, 2) || '?').toUpperCase()
+}
+
 export default function AppHeader() {
   const { user, logout } = useAuth()
   const { pathname } = useLocation()
@@ -42,8 +52,11 @@ export default function AppHeader() {
         <div className="siteHeaderActions">
           {user ? (
             <>
-              <div className="headerAvatar" title={user.email || ''}>
-                {(user.fullName || user.email || '?').slice(0, 2).toUpperCase()}
+              <div
+                className="headerAvatar"
+                title={user.fullName ? `${user.fullName}${user.email ? ` · ${user.email}` : ''}` : user.email || ''}
+              >
+                {initialsFromFullName(user.fullName)}
               </div>
               <Button variant="outline" className="btnSm" onClick={handleLogout}>
                 Log out
