@@ -5,16 +5,20 @@ import {
   faCalendarCheck,
   faCalendarDays,
   faCat,
+  faChartLine,
   faDog,
   faEnvelope,
   faEnvelopeOpenText,
-  faHouse,
+  faPaperPlane,
   faPaw,
   faUserCheck,
   faUserGear,
 } from '@fortawesome/free-solid-svg-icons'
+import logoMarkUrl from '../assets/logo.png?url'
+import Button from '../components/Button'
 
 const INBOX_STORAGE_KEY = 'loom_owner_inbox_v1'
+const CHAT_STORAGE_KEY = 'loom_owner_chat_v1'
 
 const bookings = [
   { pet: 'Rex', sitter: 'Leelo Lameuss', dates: 'Apr 14-Apr 17', price: '25.50 EUR', status: 'Confirmed' },
@@ -42,8 +46,8 @@ function loadInboxFromStorage() {
       id: 'seed-1',
       initials: 'LL',
       name: 'Leelo L.',
-      text: 'Rex on hea poiss!',
-      time: '17 min tagasi',
+      text: 'Rex is doing great today!',
+      time: '17 min ago',
       read: true,
       color: '#9fb9aa',
     },
@@ -51,8 +55,8 @@ function loadInboxFromStorage() {
       id: 'seed-2',
       initials: 'RS',
       name: 'Rasmus S.',
-      text: 'Millal teie reis on?',
-      time: '7 min tagasi',
+      text: 'When does your trip start?',
+      time: '7 min ago',
       read: true,
       color: '#e9b8b8',
     },
@@ -60,11 +64,27 @@ function loadInboxFromStorage() {
       id: 'seed-3',
       initials: 'SS',
       name: 'Sander S.',
-      text: 'Saadan Semust pildid',
-      time: '1 min tagasi',
+      text: 'Sending photos of Semu shortly.',
+      time: '1 min ago',
       read: true,
       color: '#7f9eab',
     },
+  ]
+}
+
+function loadChatFromStorage() {
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    /* ignore */
+  }
+  return [
+    { id: 'c1', role: 'them', text: 'Hi! Rex had a great walk this morning.', ts: '09:12' },
+    { id: 'c2', role: 'me', text: 'Wonderful—thanks for the update!', ts: '09:15' },
   ]
 }
 
@@ -98,6 +118,8 @@ function DashboardPage({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [inbox, setInbox] = useState(loadInboxFromStorage)
+  const [chatThread, setChatThread] = useState(loadChatFromStorage)
+  const [chatInput, setChatInput] = useState('')
 
   useEffect(() => {
     try {
@@ -106,6 +128,14 @@ function DashboardPage({
       /* ignore */
     }
   }, [inbox])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatThread))
+    } catch {
+      /* ignore */
+    }
+  }, [chatThread])
 
   const unreadCount = useMemo(() => inbox.filter((m) => !m.read).length, [inbox])
 
@@ -122,6 +152,16 @@ function DashboardPage({
     accent: ['#f2b3b0', '#c6b6cf', '#97b1a6'][index % 3],
     icon: animal.animalType?.toLowerCase() || 'pet',
   }))
+
+  const assetOrigin = useMemo(
+    () => String(apiBaseUrl || '').replace(/\/?api\/?$/i, ''),
+    [apiBaseUrl],
+  )
+
+  const heroPetPhoto =
+    displayPets[0]?.photo != null && String(displayPets[0].photo).trim() !== ''
+      ? `${assetOrigin}/uploads/${displayPets[0].photo}`
+      : null
 
   const firstName = currentUser.fullName?.split(' ')[0] || 'there'
   const initials = currentUser.fullName
@@ -183,6 +223,15 @@ function DashboardPage({
     }
   }
 
+  const handleChatSend = (e) => {
+    e.preventDefault()
+    const text = chatInput.trim()
+    if (!text) return
+    const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    setChatThread((prev) => [...prev, { id: `c-${Date.now()}`, role: 'me', text, ts }])
+    setChatInput('')
+  }
+
   const navBtn = (key, label, icon) => (
     <button
       key={key}
@@ -196,31 +245,34 @@ function DashboardPage({
   )
 
   const sectionTitle = {
-    overview: 'Ülevaade',
-    pets: 'Minu lemmikloomad',
-    bookings: 'Broneeringud',
-    messages: 'Sõnumid',
-    profile: 'Profiil ja seaded',
+    overview: 'Overview',
+    pets: 'My pets',
+    bookings: 'Bookings',
+    messages: 'Messages',
+    profile: 'Profile & settings',
   }
 
   const profilePhotoUrl = mySitterProfile?.photo
-    ? `${String(apiBaseUrl || '').replace(/\/?api\/?$/i, '')}/uploads/profiles/${mySitterProfile.photo}`
+    ? `${assetOrigin}/uploads/profiles/${mySitterProfile.photo}`
     : null
+
+  const mockOwnerReviews = 12
+  const mockOwnerRating = 4.9
 
   return (
     <section className="owner-dashboard">
       <aside className="owner-sidebar">
         <div className="owner-brand" aria-label="Loomahoidja">
-          <span className="owner-brand-mark">L</span>
+          <img src={logoMarkUrl} className="owner-brand-logo" alt="" width={44} height={36} decoding="async" />
         </div>
 
         <div className="owner-profile">
-          <strong>{currentUser.fullName || 'Peeter Pakiraam'}</strong>
+          <strong>{currentUser.fullName || 'Pet owner'}</strong>
           <span>Pet owner</span>
         </div>
 
         <nav className="owner-side-nav" aria-label="Owner dashboard">
-          {navBtn('overview', 'Overview', faHouse)}
+          {navBtn('overview', 'Overview', faChartLine)}
           {navBtn('pets', 'My pets', faPaw)}
           {navBtn('bookings', 'Bookings', faCalendarCheck)}
           {navBtn('messages', 'Messages', faEnvelope)}
@@ -231,7 +283,14 @@ function DashboardPage({
       <div className="owner-workspace">
         <header className="owner-topbar">
           <div className="owner-topbar-brand">
-            <span className="owner-logo-cloud">L</span>
+            <img
+              src={logoMarkUrl}
+              className="owner-topbar-logo"
+              alt=""
+              width={36}
+              height={30}
+              decoding="async"
+            />
             <button type="button" onClick={() => onNavigate('home')}>
               Find a sitter
             </button>
@@ -245,7 +304,7 @@ function DashboardPage({
             >
               Messages
               {unreadCount > 0 ? (
-                <span aria-label={`${unreadCount} lugemata sõnumit`}>{unreadCount}</span>
+                <span aria-label={`${unreadCount} unread messages`}>{unreadCount}</span>
               ) : null}
             </button>
           </div>
@@ -255,22 +314,24 @@ function DashboardPage({
         </header>
 
         <div className="owner-content">
-          <div className="owner-welcome">
-            <h1>
-              {section === 'overview' ? `Welcome back, ${firstName}` : sectionTitle[section]}
-            </h1>
-            <p>
-              {section === 'overview'
-                ? "Here's what's happening with your pets"
-                : section === 'pets'
-                  ? 'Siin on kõik sinu registreeritud lemmikloomad.'
-                  : section === 'bookings'
-                    ? 'Aktiivsed ja tulevased broneeringud (demo).'
-                    : section === 'messages'
-                      ? 'Vestlused hoidjatega. Täpp üleval näitab ainult lugemata sõnumeid.'
-                      : 'Konto andmed ja hoidja profiil (kui oled selle loonud).'}
-            </p>
-          </div>
+          {section !== 'profile' && (
+            <div className="owner-welcome">
+              <h1>
+                {section === 'overview' ? `Welcome back, ${firstName}` : sectionTitle[section]}
+              </h1>
+              <p>
+                {section === 'overview'
+                  ? "Here's what's happening with your pets"
+                  : section === 'pets'
+                    ? 'All pets registered on your account.'
+                    : section === 'bookings'
+                      ? 'Active and upcoming bookings (demo data).'
+                      : section === 'messages'
+                        ? 'Chat preview with your sitters. Live updates will replace this in a future release.'
+                        : ''}
+              </p>
+            </div>
+          )}
 
           {section === 'overview' && (
             <>
@@ -340,7 +401,9 @@ function DashboardPage({
                   <h2>My pets</h2>
                   <div className="owner-pet-list">
                     {displayPets.length === 0 ? (
-                      <p className="owner-empty-hint">Lemmikloomi pole veel lisatud. Kasuta „My pets“ või nuppu all.</p>
+                      <p className="owner-empty-hint">
+                        No pets yet. Open <strong>My pets</strong> in the sidebar or use the button below.
+                      </p>
                     ) : (
                       displayPets.map((pet) => (
                         <article className="owner-pet-row" key={pet.id || pet.name}>
@@ -350,7 +413,8 @@ function DashboardPage({
                           <div>
                             <strong>{pet.name}</strong>
                             <span>
-                              {pet.animalType || 'Pet'} • {pet.age != null && pet.age !== '' ? `${pet.age} years` : 'Unknown age'}
+                              {pet.animalType || 'Pet'} •{' '}
+                              {pet.age != null && pet.age !== '' ? `${pet.age} years` : 'Unknown age'}
                             </span>
                           </div>
                         </article>
@@ -366,7 +430,7 @@ function DashboardPage({
                   <h2>Recent messages</h2>
                   <div className="owner-message-list">
                     {inbox.length === 0 ? (
-                      <p className="owner-empty-hint">Sõnumeid pole.</p>
+                      <p className="owner-empty-hint">No messages yet.</p>
                     ) : (
                       inbox.map((message) => (
                         <article
@@ -405,12 +469,12 @@ function DashboardPage({
               <section className="owner-card owner-pets-panel owner-pets-panel--full">
                 <h2>My pets</h2>
                 <p className="typeBodySmall textMuted owner-section-lead">
-                  Andmed tulevad serverist (pead olema sisse logitud omanikuna). Kui nimekiri on tühi, kontrolli, et
-                  API ja token töötavad.
+                  Data is loaded from the server while you are signed in as an owner. If the list is empty, check your
+                  API URL and token.
                 </p>
                 <div className="owner-pet-list">
                   {displayPets.length === 0 ? (
-                    <p className="owner-empty-hint">Ühtegi lemmiklooma pole. Lisa esimene all oleva nupuga.</p>
+                    <p className="owner-empty-hint">No pets yet. Add your first one with the button below.</p>
                   ) : (
                     displayPets.map((pet) => (
                       <article className="owner-pet-row" key={pet.id || pet.name}>
@@ -420,7 +484,8 @@ function DashboardPage({
                         <div>
                           <strong>{pet.name}</strong>
                           <span>
-                            {pet.animalType || 'Pet'} • {pet.age != null && pet.age !== '' ? `${pet.age} years` : 'Unknown age'}
+                            {pet.animalType || 'Pet'} •{' '}
+                            {pet.age != null && pet.age !== '' ? `${pet.age} years` : 'Unknown age'}
                           </span>
                           {pet.notes ? <span className="owner-pet-notes">{pet.notes}</span> : null}
                         </div>
@@ -464,106 +529,166 @@ function DashboardPage({
           )}
 
           {section === 'messages' && (
-            <section className="owner-card owner-messages-panel owner-messages-panel--full">
-              <h2>Messages</h2>
-              {unreadCount > 0 ? (
-                <p className="owner-inbox-hint">{unreadCount} lugemata sõnum — kliki real, et märkida loetuks.</p>
-              ) : (
-                <p className="owner-inbox-hint">Kõik sõnumid on loetud. Uue sõnumi korral ilmub üleval täpp.</p>
-              )}
-              <div className="owner-message-list">
-                {inbox.length === 0 ? (
-                  <p className="owner-empty-hint">Sõnumeid pole.</p>
-                ) : (
-                  inbox.map((message) => (
-                    <article
-                      className={`owner-message-row ${!message.read ? 'owner-message-row--unread' : ''}`}
-                      key={message.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => markMessageRead(message.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          markMessageRead(message.id)
-                        }
-                      }}
-                    >
-                      <span className="message-avatar" style={{ backgroundColor: message.color }}>
-                        {message.initials}
-                      </span>
-                      <div>
-                        <strong>{message.name}</strong>
-                        <span>{message.text}</span>
-                      </div>
-                      <time>{message.time}</time>
-                      {!message.read ? <span className="owner-message-dot" aria-hidden="true" /> : null}
-                    </article>
-                  ))
-                )}
+            <section className="owner-card owner-chat-card">
+              <div className="owner-chat-header">
+                <h2>Messages</h2>
+                <p className="owner-chat-subtitle typeBodySmall textMuted">
+                  Mock chat with Leelo L. — real-time messaging will use websockets later.
+                </p>
               </div>
-              <p className="owner-mock-note typeBodySmall textMuted">
-                Demo: uued sõnumid saab hiljem ühendada API-ga. Praegu saad lugemata olekut testida, muutes brauseri
-                localStorage võtit <code className="mono">{INBOX_STORAGE_KEY}</code> (märgi mõni kirje{' '}
-                <code className="mono">read: false</code>).
-              </p>
+              {unreadCount > 0 ? (
+                <p className="owner-inbox-hint">
+                  {unreadCount} unread notification{unreadCount === 1 ? '' : 's'} in the overview list — open a row
+                  there to mark as read.
+                </p>
+              ) : null}
+              <div className="owner-chat-thread" role="log" aria-live="polite">
+                {chatThread.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`owner-chat-bubble owner-chat-bubble--${m.role === 'me' ? 'me' : 'them'}`}
+                  >
+                    <p className="owner-chat-text">{m.text}</p>
+                    <time className="owner-chat-ts">{m.ts}</time>
+                  </div>
+                ))}
+              </div>
+              <form className="owner-chat-form" onSubmit={handleChatSend}>
+                <input
+                  className="input owner-chat-input"
+                  type="text"
+                  placeholder="Type a message…"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  autoComplete="off"
+                />
+                <button type="submit" className="btn btnPrimary owner-chat-send" aria-label="Send">
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                </button>
+              </form>
             </section>
           )}
 
           {section === 'profile' && (
-            <div className="owner-profile-settings">
-              <section className="owner-card">
-                <h2>Omaniku konto</h2>
-                <dl className="owner-dl">
-                  <dt>Nimi</dt>
-                  <dd>{currentUser.fullName || '—'}</dd>
-                  <dt>E-post</dt>
-                  <dd>{currentUser.email || '—'}</dd>
-                  <dt>Telefon</dt>
-                  <dd>{currentUser.phone || '—'}</dd>
-                  <dt>Linn</dt>
-                  <dd>{currentUser.city || '—'}</dd>
-                  <dt>Roll</dt>
-                  <dd>{currentUser.role || '—'}</dd>
-                </dl>
-                <p className="typeBodySmall textMuted">
-                  Andmete muutmine läbi vormi tuleb hiljem; praegu kuvatakse sisselogitud kasutaja andmed.
-                </p>
+            <>
+              <section className="owner-public-profile-hero cardSurface">
+                <div className="owner-public-profile-heroInner">
+                  {heroPetPhoto ? (
+                    <img className="owner-public-profile-photo" src={heroPetPhoto} alt="" />
+                  ) : (
+                    <div className="owner-public-profile-fallback" aria-hidden="true">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="owner-public-profile-text">
+                    <h1 className="typeH1 owner-public-profile-name">{currentUser.fullName || 'Pet owner'}</h1>
+                    <p className="typeBodySmall textMuted">
+                      {currentUser.city || '—'} • Member since 2026
+                    </p>
+                    <div className="tagRow">
+                      {displayPets.length === 0 ? (
+                        <span className="tag">No pets yet</span>
+                      ) : (
+                        displayPets.map((p) => (
+                          <span key={p.id || p.name} className="tag">
+                            {p.name} ({p.animalType || 'pet'})
+                          </span>
+                        ))
+                      )}
+                    </div>
+                    <p className="typeBody">
+                      ★ {mockOwnerRating.toFixed(1)} • {mockOwnerReviews} reviews
+                    </p>
+                  </div>
+                  <div className="owner-public-profile-aside">
+                    <Button variant="primary" className="btnWide" type="button" onClick={() => onNavigate('home')}>
+                      Find a sitter
+                    </Button>
+                    <Button variant="outline" className="btnWide" type="button" onClick={() => setSection('messages')}>
+                      Send message
+                    </Button>
+                  </div>
+                </div>
               </section>
 
-              <section className="owner-card">
-                <h2>Hoidja profiil</h2>
-                {mySitterProfile ? (
-                  <>
+              <div className="owner-profile-columns">
+                <div className="owner-profile-main-col">
+                  <section className="cardSurface blockPad">
+                    <h2 className="typeH2">About</h2>
                     <p className="typeBody">
-                      Sul on loodud hoidja profiil (sama konto). Ava avalik leht või muuda profiili DevTools / hoidja
-                      töölaua kaudu.
+                      Pet owner on Loomahoidja. Keep your pet profiles up to date so sitters know how to give the best
+                      care.
                     </p>
+                  </section>
+                  <section className="cardSurface blockPad">
+                    <h2 className="typeH2">My pets</h2>
+                    {displayPets.length === 0 ? (
+                      <p className="typeBody textMuted">No pets registered yet.</p>
+                    ) : (
+                      <ul className="typeBody listPlain">
+                        {displayPets.map((p) => (
+                          <li key={p.id || p.name}>
+                            <strong>{p.name}</strong> — {p.animalType || 'Pet'}
+                            {p.age != null && p.age !== '' ? `, age ${p.age}` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                </div>
+                <aside className="owner-profile-aside-col">
+                  <section className="owner-card">
+                    <h2>Account</h2>
                     <dl className="owner-dl">
-                      <dt>Tunnitasu</dt>
-                      <dd>{mySitterProfile.hourlyRate != null ? `${mySitterProfile.hourlyRate} €` : '—'}</dd>
-                      <dt>Linn</dt>
-                      <dd>{mySitterProfile.city || '—'}</dd>
-                      <dt>Bio</dt>
-                      <dd>{mySitterProfile.bio || '—'}</dd>
+                      <dt>Name</dt>
+                      <dd>{currentUser.fullName || '—'}</dd>
+                      <dt>Email</dt>
+                      <dd>{currentUser.email || '—'}</dd>
+                      <dt>Phone</dt>
+                      <dd>{currentUser.phone || '—'}</dd>
+                      <dt>City</dt>
+                      <dd>{currentUser.city || '—'}</dd>
+                      <dt>Role</dt>
+                      <dd>{currentUser.role || '—'}</dd>
                     </dl>
-                    {profilePhotoUrl ? (
-                      <img className="owner-profile-thumb" src={profilePhotoUrl} alt="" />
-                    ) : null}
-                    <div className="owner-profile-actions">
-                      <Link className="btn btnPrimary" to={`/sitter/${mySitterProfile.id}`}>
-                        Vaata avalikku profiili
-                      </Link>
-                    </div>
-                  </>
-                ) : (
-                  <p className="typeBody">
-                    Sellel kontol pole hoidja profiili. Kui oled registreerunud ainult omanikuna, on see oodatud
-                    olek. Hoidja profiili saad luua registreerudes hoidjana või DevTools kaudu.
-                  </p>
-                )}
-              </section>
-            </div>
+                    <p className="typeBodySmall textMuted">Profile editing will be added in a future update.</p>
+                  </section>
+
+                  <section className="owner-card">
+                    <h2>Sitter profile</h2>
+                    {mySitterProfile ? (
+                      <>
+                        <p className="typeBody">
+                          You also have a sitter profile on this account. Open the public page or manage it from the
+                          sitter dashboard / Dev tools.
+                        </p>
+                        <dl className="owner-dl">
+                          <dt>Hourly rate</dt>
+                          <dd>{mySitterProfile.hourlyRate != null ? `${mySitterProfile.hourlyRate} €` : '—'}</dd>
+                          <dt>City</dt>
+                          <dd>{mySitterProfile.city || '—'}</dd>
+                          <dt>Bio</dt>
+                          <dd>{mySitterProfile.bio || '—'}</dd>
+                        </dl>
+                        {profilePhotoUrl ? (
+                          <img className="owner-profile-thumb" src={profilePhotoUrl} alt="" />
+                        ) : null}
+                        <div className="owner-profile-actions">
+                          <Link className="btn btnPrimary" to={`/sitter/${mySitterProfile.id}`}>
+                            View public profile
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="typeBody">
+                        No sitter profile on this account. That is expected if you registered only as an owner. Create a
+                        sitter profile by signing up as a sitter or using Dev tools.
+                      </p>
+                    )}
+                  </section>
+                </aside>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -588,7 +713,7 @@ function DashboardPage({
               {errorMessage && <div className="form-error-banner">{errorMessage}</div>}
 
               <div className="form-group">
-                <label>Nimi *</label>
+                <label>Name *</label>
                 <input
                   type="text"
                   value={name}

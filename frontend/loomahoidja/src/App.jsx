@@ -16,7 +16,7 @@ const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage.jsx'))
 const DevToolsPage = lazy(() => import('./pages/DevToolsPage.jsx'))
 
 function ShellSuspense({ children }) {
-  return <Suspense fallback={<Loader label="Laadin..." />}>{children}</Suspense>
+  return <Suspense fallback={<Loader label="Loading…" />}>{children}</Suspense>
 }
 
 function MainLayout() {

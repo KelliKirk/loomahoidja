@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import logoUrl from '../assets/logo.png'
+import logoUrl from '../assets/logo.png?url'
 import { useAuth } from '../auth/AuthContext'
 import Button from './Button'
 
@@ -30,7 +30,15 @@ export default function AppHeader() {
       <div className="siteHeaderInner">
         <div className="siteHeaderLeading">
           <Link to="/" className="siteBrand">
-            <img src={logoUrl} className="brandLogo" alt="Loomahoidja" />
+            <img
+              src={logoUrl}
+              className="brandLogo"
+              alt="Loomahoidja"
+              width={160}
+              height={40}
+              decoding="async"
+              fetchPriority="high"
+            />
             <span className="siteBrandName">Loomahoidja</span>
           </Link>
 

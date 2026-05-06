@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import AuthForm from '../components/AuthForm.jsx'
-import logoUrl from '../assets/logo.png'
+import logoUrl from '../assets/logo.png?url'
 
 export default function SignupPage() {
   const nav = useNavigate()

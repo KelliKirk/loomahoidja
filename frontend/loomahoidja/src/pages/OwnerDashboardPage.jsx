@@ -79,7 +79,7 @@ export default function OwnerDashboardPage() {
   if (!user || user.role !== 'owner') {
     return (
       <main className="pageMain narrow">
-        <p className="typeBody">Omaniku töölaud on saadaval ainult omaniku rolliga kontole.</p>
+        <p className="typeBody">The owner dashboard is only available when signed in with an owner account.</p>
       </main>
     )
   }

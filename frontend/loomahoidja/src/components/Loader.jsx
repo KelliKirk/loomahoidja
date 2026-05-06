@@ -1,7 +1,7 @@
 import spinnerUrl from '../assets/loader.svg'
 import './Loader.css'
 
-export default function Loader({ label = 'Laadin…', size = 72 }) {
+export default function Loader({ label = 'Loading…', size = 72 }) {
   return (
     <div className="loaderRoot" role="status" aria-live="polite">
       <div className="loaderOrbit" style={{ width: size, height: size }}>
