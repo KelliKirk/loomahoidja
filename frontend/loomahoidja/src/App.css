@@ -2822,6 +2822,13 @@ button:hover {
   color: #493148;
   font-size: 1.4rem;
   line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.owner-stat-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .owner-stat-icon.success {
@@ -3074,6 +3081,115 @@ button:hover {
   height: 7px;
   border-radius: 50%;
   background: #634860;
+}
+
+.owner-nav-icon {
+  font-size: 0.95rem;
+  opacity: 0.92;
+}
+
+.pet-thumb--icon svg {
+  width: 1rem;
+  height: 1rem;
+  color: #fff;
+}
+
+.owner-message-row[role='button'] {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: -6px -8px;
+}
+
+.owner-message-row[role='button']:focus-visible {
+  outline: 2px solid #ebbab9;
+  outline-offset: 2px;
+}
+
+.owner-message-row--unread {
+  background: rgba(235, 186, 185, 0.12);
+}
+
+.owner-message-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e8b7b8;
+  justify-self: end;
+}
+
+.owner-empty-hint,
+.owner-inbox-hint {
+  margin: 0;
+  color: #6d6470;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.owner-section-panel {
+  margin-top: 8px;
+}
+
+.owner-section-lead {
+  margin: 0 0 16px;
+}
+
+.owner-pets-panel--full,
+.owner-messages-panel--full {
+  width: 100%;
+  max-width: 640px;
+}
+
+.owner-bookings-section--solo {
+  margin-top: 8px;
+}
+
+.owner-profile-settings {
+  display: grid;
+  gap: 24px;
+  max-width: 560px;
+}
+
+.owner-dl {
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 16px;
+  font-size: 0.84rem;
+}
+
+.owner-dl dt {
+  margin: 0;
+  color: #6d6470;
+  font-weight: 700;
+}
+
+.owner-dl dd {
+  margin: 0;
+  color: #34344a;
+  font-weight: 600;
+}
+
+.owner-profile-thumb {
+  max-width: 160px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.owner-profile-actions {
+  margin-top: 16px;
+}
+
+.owner-pet-notes {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: #6d6470;
+  white-space: normal;
+}
+
+.owner-mock-note {
+  margin-top: 24px;
 }
 
 @media (max-width: 1100px) {

@@ -9,6 +9,7 @@ export default function OwnerDashboardPage() {
   const navigate = useNavigate()
   const [animals, setAnimals] = useState([])
   const [sitterCount, setSitterCount] = useState(0)
+  const [mySitterProfile, setMySitterProfile] = useState(null)
 
   const handleNavigate = useCallback(
     (target) => {
@@ -43,14 +44,21 @@ export default function OwnerDashboardPage() {
         const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
         const list = Array.isArray(data) ? data : data?.sitters || []
         if (!cancelled) setSitterCount(list.length)
+        if (!cancelled && user?.id) {
+          const mine = list.find((s) => Number(s.userId) === Number(user.id))
+          setMySitterProfile(mine || null)
+        }
       } catch {
-        if (!cancelled) setSitterCount(0)
+        if (!cancelled) {
+          setSitterCount(0)
+          setMySitterProfile(null)
+        }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [apiBaseUrl])
+  }, [apiBaseUrl, user?.id])
 
   useEffect(() => {
     let cancelled = false
@@ -86,6 +94,7 @@ export default function OwnerDashboardPage() {
       apiBaseUrl={apiBaseUrl}
       token={token}
       availableSitterCount={sitterCount}
+      mySitterProfile={mySitterProfile}
     />
   )
 }
