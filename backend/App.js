@@ -1,3 +1,4 @@
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -30,6 +31,17 @@ app.use('/api/notifications', require('./routes/NotificationRoutes'));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'Server is running' });
 });
+
+// Optional: serve Vite production build from same origin (set SERVE_SPA=1 after `npm run build` in frontend/loomahoidja)
+const frontendDist = path.join(__dirname, '../frontend/loomahoidja/dist');
+if (process.env.SERVE_SPA === '1' && fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 // Error handling
 app.use(errorHandler);
