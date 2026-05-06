@@ -81,11 +81,11 @@ export default function OwnerDashboardPage() {
       currentUser={user}
       animals={animals}
       onRefresh={refreshAnimals}
-      availableSitterCount={sitterCount}
       onNavigate={handleNavigate}
       onLogout={handleLogout}
       apiBaseUrl={apiBaseUrl}
       token={token}
+      availableSitterCount={sitterCount}
     />
   )
 }

@@ -1,3 +1,26 @@
+const ANIMAL_TYPES = new Set(['dog', 'cat', 'bird', 'rodent', 'other']);
+
+/**
+ * Map UI / legacy labels to Sequelize ENUM values on animals.animalType.
+ */
+function normalizeAnimalType(raw) {
+  if (raw == null || raw === '') return null;
+  const s = String(raw).trim().toLowerCase();
+  const aliases = {
+    dog: 'dog',
+    cat: 'cat',
+    bird: 'bird',
+    rodent: 'rodent',
+    rodents: 'rodent',
+    other: 'other',
+    fish: 'other',
+  };
+  const v = aliases[s];
+  if (v && ANIMAL_TYPES.has(v)) return v;
+  if (ANIMAL_TYPES.has(s)) return s;
+  return null;
+}
+
 function validateCreateAnimalPayload(payload) {
   const errors = [];
   if (!payload || typeof payload !== 'object') {
@@ -27,7 +50,7 @@ function normalizeAnimalCreateData({ ownerId, body, file }) {
   return {
       ownerId,
       name,
-      animalType: animalType || null,
+      animalType: normalizeAnimalType(animalType),
       age: age !== undefined && age !== null && age !== '' ? parseInt(age, 10) : null,
       photo: file ? `animals/${file.filename}` : null,
       goodWithAnimals: toBool(goodWithAnimals),
@@ -40,7 +63,10 @@ function normalizeAnimalUpdateData({ body, file }) {
   const { name, animalType, age, goodWithAnimals, goodWithChildren, notes } = body || {};
   const updateData = {};
   if (name) updateData.name = name;
-  if (animalType) updateData.animalType = animalType;
+  if (animalType !== undefined) {
+    const t = normalizeAnimalType(animalType);
+    if (t !== null) updateData.animalType = t;
+  }
   if (age !== undefined) updateData.age = age ? parseInt(age, 10) : null;
   if (goodWithAnimals !== undefined) updateData.goodWithAnimals = goodWithAnimals === 'true' || goodWithAnimals === true;
   if (goodWithChildren !== undefined) updateData.goodWithChildren = goodWithChildren === 'true' || goodWithChildren === true;
@@ -53,5 +79,6 @@ module.exports = {
   validateCreateAnimalPayload,
   normalizeAnimalCreateData,
   normalizeAnimalUpdateData,
+  normalizeAnimalType,
 };
 

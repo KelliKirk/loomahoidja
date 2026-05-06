@@ -17,6 +17,15 @@ describe('animalValidation', () => {
     expect(res.errors).toContain('Age must be a non-negative integer');
   });
 
+  test('normalizeAnimalCreateData maps UI animal labels to ENUM values', () => {
+    const data = normalizeAnimalCreateData({
+      ownerId: 1,
+      body: { name: 'Rex', animalType: 'Dog' },
+      file: null,
+    });
+    expect(data.animalType).toBe('dog');
+  });
+
   test('normalizeAnimalCreateData coerces booleans and photo path', () => {
     const data = normalizeAnimalCreateData({
       ownerId: 123,

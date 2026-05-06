@@ -12,11 +12,20 @@ const messages = [
   { initials: 'SS', name: 'Sander S.', text: 'Saadan Semust pildid', time: '1 m ago', color: '#7f9eab' },
 ]
 
-function DashboardPage({ currentUser, animals, onRefresh, onNavigate, onLogout, apiBaseUrl, token }) {
+function DashboardPage({
+  currentUser,
+  animals,
+  onRefresh,
+  onNavigate,
+  onLogout,
+  apiBaseUrl,
+  token,
+  availableSitterCount = 0,
+}) {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [name, setName] = useState('')
-  const [animalType, setAnimalType] = useState('Dog')
+  const [animalType, setAnimalType] = useState('dog')
   const [age, setAge] = useState('')
   const [notes, setNotes] = useState('')
   const [photoFile, setPhotoFile] = useState(null)
@@ -78,7 +87,8 @@ function DashboardPage({ currentUser, animals, onRefresh, onNavigate, onLogout, 
         body: formData,
       })
       if (!response.ok) {
-        throw new Error('Failed to add pet')
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.error || errData.message || 'Failed to add pet')
       }
       resetForm()
       setIsModalOpen(false)
@@ -142,9 +152,9 @@ function DashboardPage({ currentUser, animals, onRefresh, onNavigate, onLogout, 
             </article>
             <article className="owner-stat-card">
               <span className="owner-stat-icon success" aria-hidden="true">✓</span>
-              <span className="owner-stat-label">Total bookings</span>
-              <strong>12</strong>
-              <small>since joining</small>
+              <span className="owner-stat-label">Sitters listed</span>
+              <strong>{availableSitterCount}</strong>
+              <small>on the platform</small>
             </article>
             <article className="owner-stat-card">
               <span className="owner-stat-icon outline" aria-hidden="true">○</span>
@@ -236,11 +246,11 @@ function DashboardPage({ currentUser, animals, onRefresh, onNavigate, onLogout, 
                 <div className="form-group">
                   <label>Type</label>
                   <select value={animalType} onChange={(e) => setAnimalType(e.target.value)}>
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                    <option value="Bird">Bird</option>
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                    <option value="bird">Bird</option>
                     <option value="rodent">Rodent</option>
-                    <option value="Other">Other</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
                 <div className='form-group'>

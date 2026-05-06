@@ -66,7 +66,7 @@ function rawTypesFromApi(sitter) {
 }
 
 function normalizeApiSitter(sitter, apiOrigin, index) {
-  const photo = sitter.photo ? `${apiOrigin}/uploads/${sitter.photo}` : null
+  const photo = sitter.photo ? `${apiOrigin}/uploads/profiles/${sitter.photo}` : null
   const types = formatTypesFromApi(sitter)
   const rawTypes = rawTypesFromApi(sitter)
   const ratingNum = 4.7 + ((Number(sitter.id) || index) % 4) * 0.1
