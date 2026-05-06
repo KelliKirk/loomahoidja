@@ -4353,3 +4353,158 @@ button:hover {
   background: rgba(235, 186, 185, 0.5);
 }
 
+/* --- Add New Pet Modal Overlay --- */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(52, 52, 74, 0.6); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: 'Nunito', sans-serif;
+}
+
+.custom-modal-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+.custom-modal-header {
+  background-color: #EBBAB9; 
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-modal-header h3 {
+  margin: 0;
+  color: #34344A;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.custom-modal-header .close-x {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #34344A;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.custom-modal-form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #34344A;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #698996; 
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: #34344A;
+  box-sizing: border-box;
+}
+
+.form-grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344A;
+  cursor: pointer;
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.custom-modal-footer button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.btn-secondary {
+  background-color: #e4e4e7;
+  color: #34344A;
+}
+
+.btn-secondary:hover {
+  background-color: #d4d4d8;
+}
+
+.btn-primary {
+  background-color: #97B1A6; 
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #7f9a8f;
+}
+
+.form-error-banner {
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+@keyframes fadeInModal {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

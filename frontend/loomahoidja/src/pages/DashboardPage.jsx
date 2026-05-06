@@ -1,10 +1,4 @@
-import React from 'react'
-
-const samplePets = [
-  { id: 'rex', name: 'Rex', animalType: 'Dog', age: 3, accent: '#f2b3b0', icon: 'dog' },
-  { id: 'miisu', name: 'Miisu', animalType: 'Cat', age: 2, accent: '#c6b6cf', icon: 'cat' },
-  { id: 'semu', name: 'Semu', animalType: 'Dog', age: 7, accent: '#97b1a6', icon: 'dog' },
-]
+import React, { useState } from 'react'
 
 const bookings = [
   { pet: 'Rex', sitter: 'Leelo Lameuss', dates: 'Apr 14-Apr 17', price: '25.50 EUR', status: 'Confirmed' },
@@ -18,14 +12,24 @@ const messages = [
   { initials: 'SS', name: 'Sander S.', text: 'Saadan Semust pildid', time: '1 m ago', color: '#7f9eab' },
 ]
 
-function DashboardPage({ currentUser, animals, onNavigate, onLogout }) {
-  const displayPets = animals.length
-    ? animals.map((animal, index) => ({
-        ...animal,
-        accent: ['#f2b3b0', '#c6b6cf', '#97b1a6'][index % 3],
-        icon: animal.animalType?.toLowerCase() || 'pet',
-      }))
-    : samplePets
+function DashboardPage({ currentUser, animals, onRefresh, onNavigate, onLogout, apiBaseUrl, token }) {
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [animalType, setAnimalType] = useState('Dog')
+  const [age, setAge] = useState('')
+  const [notes, setNotes] = useState('')
+  const [photoFile, setPhotoFile] = useState(null)
+  const [goodWithAnimals, setGoodWithAnimals] = useState(false)
+  const [goodWithChildren, setGoodWithChildren] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const displayPets = animals.map((animal, index) => ({
+      ...animal,
+      accent: ['#f2b3b0', '#c6b6cf', '#97b1a6'][index % 3],
+      icon: animal.animalType?.toLowerCase() || 'pet',
+    }))
 
   const firstName = currentUser.fullName?.split(' ')[0] || 'there'
   const initials = currentUser.fullName
@@ -35,6 +39,56 @@ function DashboardPage({ currentUser, animals, onNavigate, onLogout }) {
     .slice(0, 2)
     .toUpperCase() || 'PP'
 
+  const resetForm = () => {
+    setName('')
+    setAnimalType('dog')
+    setAge('')
+    setNotes('')
+    setPhotoFile(null)
+    setGoodWithAnimals(false)
+    setGoodWithChildren(false)
+    setErrorMessage('')
+  }
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault()
+    if (!name.trim()) {
+      setErrorMessage('Please enter a name for your pet.')
+      return
+    }
+    setIsSubmitting(true)
+    setErrorMessage('')
+    try {
+      const formData = new FormData()
+      formData.append('name', name)
+      formData.append('animalType', animalType)
+      if (age) formData.append('age', age)
+      formData.append('notes', notes)
+      formData.append('goodWithAnimals', goodWithAnimals ? '1' : '0')
+      formData.append('goodWithChildren', goodWithChildren ? '1' : '0')
+      if (photoFile) {
+        formData.append('photo', photoFile)
+      }
+
+      const response = await fetch(`${apiBaseUrl}/animals`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+      if (!response.ok) {
+        throw new Error('Failed to add pet')
+      }
+      resetForm()
+      setIsModalOpen(false)
+      if (onRefresh) onRefresh()
+    } catch (error) {
+      setErrorMessage(error.message || 'An error occurred while adding your pet. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   return (
     <section className="owner-dashboard">
       <aside className="owner-sidebar">
@@ -140,7 +194,7 @@ function DashboardPage({ currentUser, animals, onNavigate, onLogout }) {
                   </article>
                 ))}
               </div>
-              <button className="add-pet-button" type="button">+ Add new pet</button>
+              <button className="add-pet-button" type="button" onClick={() => setIsModalOpen(true)}>+ Add new pet</button>
             </section>
 
             <section className="owner-card owner-messages-panel">
@@ -162,7 +216,66 @@ function DashboardPage({ currentUser, animals, onNavigate, onLogout }) {
           </div>
         </div>
       </div>
-    </section>
+      {isModalOpen && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal-container">
+            <header className="custom-modal-header">
+              <h3>Add new pet</h3>
+              <button type="button" className="close-x" onClick={() => { setIsModalOpen(false); resetForm(); }}>&times;</button>
+            </header>
+
+            <form onSubmit={handleFormSubmit} className="custom-modal-form">
+              {errorMessage && <div className="form-error-banner">{errorMessage}</div>}
+
+              <div className="form-group">
+                <label>Nimi *</label>
+                <input type='text' value={name} onChange={(e) => setName(e.target.value)} placeholder="Pet name" required />
+              </div>
+
+              <div className='form-grid-two'>
+                <div className="form-group">
+                  <label>Type</label>
+                  <select value={animalType} onChange={(e) => setAnimalType(e.target.value)}>
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                    <option value="Bird">Bird</option>
+                    <option value="rodent">Rodent</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className='form-group'>
+                  <label>Age</label>
+                  <input type="number" min="0" value={age} onChange={(e) => setAge(e.target.value)} placeholder='0' />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Photo</label>
+                <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files[0])} />
+              </div>
+              <div className='form-checkbox-group'>
+                <label className='checkbox-label'>
+                  <input type="checkbox" checked={goodWithAnimals} onChange={(e) => setGoodWithAnimals(e.target.checked)} />
+                  Gets along with other animals
+                </label>
+                <label className='checkbox-label'>
+                  <input type="checkbox" checked={goodWithChildren} onChange={(e) => setGoodWithChildren(e.target.checked)} />
+                  Gets along with children
+                </label>
+              </div>
+              <div className='form-group'>
+                <label>Additional notes</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any special care instructions or preferences?" rows="5" />
+              </div>
+              <footer className="custom-modal-footer">
+                <button type="button" className='btn-secondary' disabled={isSubmitting} onClick={() => { setIsModalOpen(false); resetForm(); }} >Cancel</button>
+                <button type="submit" className='btn-primary' disabled={isSubmitting}>Add pet</button>
+              </footer>
+            </form >
+          </div >
+        </div >
+      )
+      }
+    </section >
   )
 }
 

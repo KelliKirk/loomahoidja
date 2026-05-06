@@ -84,6 +84,8 @@ export default function OwnerDashboardPage() {
       availableSitterCount={sitterCount}
       onNavigate={handleNavigate}
       onLogout={handleLogout}
+      apiBaseUrl={apiBaseUrl}
+      token={token}
     />
   )
 }

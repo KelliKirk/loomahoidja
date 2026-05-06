@@ -44,9 +44,6 @@ export default function SitterDashboardPage() {
   return (
     <div className="owner-dashboard">
       <aside className="owner-sidebar">
-        <div className="owner-brand">
-          <span className="owner-brand-mark">L</span>
-        </div>
         <div className="owner-profile">
           <strong>{user?.fullName || 'Sitter'}</strong>
           <span>Sitter</span>
@@ -62,11 +59,6 @@ export default function SitterDashboardPage() {
       </aside>
 
       <div className="owner-workspace">
-        <header className="owner-topbar">
-          <div className="typeBody">Sitter Dashboard</div>
-          <div className="user-avatar">{initials}</div>
-        </header>
-
         <main className="owner-content">
           <div className="owner-welcome">
             <h1>Welcome back, {firstName}</h1>

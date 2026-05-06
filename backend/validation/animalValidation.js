@@ -20,16 +20,19 @@ function validateCreateAnimalPayload(payload) {
 
 function normalizeAnimalCreateData({ ownerId, body, file }) {
   const { name, animalType, age, goodWithAnimals, goodWithChildren, notes } = body || {};
+  
+  const toBool = (val) => val === '1' || val === 1 || val === true;
+  
   return {
-    ownerId,
-    name,
-    animalType: animalType || null,
-    age: age !== undefined && age !== null && age !== '' ? parseInt(age, 10) : null,
-    photo: file ? `animals/${file.filename}` : null,
-    goodWithAnimals: goodWithAnimals === 'true' || goodWithAnimals === true,
-    goodWithChildren: goodWithChildren === 'true' || goodWithChildren === true,
-    notes: notes || null,
-  };
+      ownerId,
+      name,
+      animalType: animalType || null,
+      age: age !== undefined && age !== null && age !== '' ? parseInt(age, 10) : null,
+      photo: file ? `animals/${file.filename}` : null,
+      goodWithAnimals: toBool(goodWithAnimals),
+      goodWithChildren: toBool(goodWithChildren),
+      notes: notes || null,
+    };
 }
 
 function normalizeAnimalUpdateData({ body, file }) {
