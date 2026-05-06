@@ -82,8 +82,26 @@ export function AuthProvider({ children }) {
     if (!token?.trim()) return null
     try {
       const u = await apiJson({ baseUrl: apiBaseUrl, path: '/auth/me', token })
-      setUserState(u)
-      localStorage.setItem(LS_USER, JSON.stringify(u))
+      setUserState((prev) => {
+        const merged = {
+          ...(prev && typeof prev === 'object' ? prev : {}),
+          ...u,
+        }
+        // /auth/me can return a sparse row (e.g. demo user id) — don't wipe name from login/register
+        if (!String(merged.fullName || '').trim() && prev?.fullName) {
+          merged.fullName = prev.fullName
+        }
+        if (!merged.email && prev?.email) merged.email = prev.email
+        if (merged.phone === undefined && prev?.phone !== undefined) merged.phone = prev.phone
+        if (!String(merged.city || '').trim() && prev?.city) merged.city = prev.city
+        if (!merged.role && prev?.role) merged.role = prev.role
+        try {
+          localStorage.setItem(LS_USER, JSON.stringify(merged))
+        } catch {
+          /* ignore */
+        }
+        return merged
+      })
       return u
     } catch {
       return null
