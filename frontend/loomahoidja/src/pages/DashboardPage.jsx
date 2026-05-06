@@ -344,7 +344,84 @@ function DashboardPage({
       </aside>
 
       <div className="owner-workspace">
-        <div className="owner-content">
+        {section === 'profile' && (
+          <div className="owner-profile-hero-strip">
+            <div className="owner-profile-hero-strip-inner">
+              <div className="owner-profile-hero-layout">
+                <div className="owner-profile-avatar-block">
+                  <button
+                    type="button"
+                    className="owner-profile-avatar-hit"
+                    onClick={() => ownerPhotoInputRef.current?.click()}
+                    disabled={photoUploading || !onUserUpdated}
+                    aria-label={ownerPhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
+                  >
+                    <Avatar src={ownerPhotoUrl} name={currentUser.fullName} size={96} />
+                  </button>
+                  <input
+                    ref={ownerPhotoInputRef}
+                    type="file"
+                    className="owner-photo-file-input"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleOwnerPhotoSelected}
+                  />
+                  {photoUploading ? (
+                    <p className="typeCaption textMuted owner-profile-upload-hint">Uploading…</p>
+                  ) : (
+                    <p className="typeCaption textMuted owner-profile-upload-hint">
+                      {ownerPhotoUrl ? 'Click photo to replace' : 'Click to add a photo'}
+                    </p>
+                  )}
+                  {photoUploadError ? (
+                    <p className="formError owner-profile-upload-error">{photoUploadError}</p>
+                  ) : null}
+                </div>
+                <div className="owner-profile-hero-text">
+                  <h1 className="typeH1 owner-profile-hero-title">
+                    {currentUser.fullName || 'Pet owner'}
+                  </h1>
+                  <p className="typeBodySmall owner-profile-hero-sub">
+                    {currentUser.city && String(currentUser.city).trim()
+                      ? `${currentUser.city} · `
+                      : ''}
+                    Member since {memberSinceYear(currentUser)}
+                  </p>
+                  <div className="tagRow">
+                    {petSpeciesTags.length === 0 ? (
+                      <span className="tag">No pet types yet</span>
+                    ) : (
+                      petSpeciesTags.map((t) => (
+                        <span key={t} className="tag">
+                          {t}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <p className="typeBody owner-profile-hero-meta">
+                    {displayPets.length === 0
+                      ? 'No pets on your account yet — add them under My pets.'
+                      : `${displayPets.length} pet${displayPets.length === 1 ? '' : 's'} on your account`}
+                  </p>
+                </div>
+                <div className="owner-profile-hero-aside">
+                  <Button variant="primary" className="btnWide" type="button" onClick={() => onNavigate('home')}>
+                    Find a sitter
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="btnWide owner-profile-hero-outline-btn"
+                    type="button"
+                    onClick={() => setSection('messages')}
+                  >
+                    Send message
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className={`owner-content${section === 'profile' ? ' owner-content--profile' : ''}`}>
           {section !== 'profile' && (
             <div className="owner-welcome">
               <h1>
@@ -597,79 +674,17 @@ function DashboardPage({
           )}
 
           {section === 'profile' && (
-            <>
-              <section className="profileHero cardSurface">
-                <div className="profileHeroInner">
-                  <div className="owner-profile-avatar-block">
-                    <button
-                      type="button"
-                      className="owner-profile-avatar-hit"
-                      onClick={() => ownerPhotoInputRef.current?.click()}
-                      disabled={photoUploading || !onUserUpdated}
-                      aria-label={ownerPhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
-                    >
-                      <Avatar src={ownerPhotoUrl} name={currentUser.fullName} size={96} />
-                    </button>
-                    <input
-                      ref={ownerPhotoInputRef}
-                      type="file"
-                      className="owner-photo-file-input"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      onChange={handleOwnerPhotoSelected}
-                    />
-                    {photoUploading ? (
-                      <p className="typeCaption textMuted owner-profile-upload-hint">Uploading…</p>
-                    ) : (
-                      <p className="typeCaption textMuted owner-profile-upload-hint">
-                        {ownerPhotoUrl ? 'Click photo to replace' : 'Click to add a photo'}
-                      </p>
-                    )}
-                    {photoUploadError ? <p className="formError owner-profile-upload-error">{photoUploadError}</p> : null}
-                  </div>
-                  <div className="profileHeroText">
-                    <h1 className="typeH1 profileName">{currentUser.fullName || 'Pet owner'}</h1>
-                    <p className="typeBodySmall textMuted">
-                      {currentUser.city || '—'} • Member since {memberSinceYear(currentUser)}
-                    </p>
-                    <div className="tagRow">
-                      {petSpeciesTags.length === 0 ? (
-                        <span className="tag">No pet types yet</span>
-                      ) : (
-                        petSpeciesTags.map((t) => (
-                          <span key={t} className="tag">
-                            {t}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                    <p className="typeBody">
-                      {displayPets.length === 0
-                        ? 'No pets on your account yet — add them under My pets.'
-                        : `${displayPets.length} pet${displayPets.length === 1 ? '' : 's'} on your account`}
-                    </p>
-                  </div>
-                  <div className="profileHeroAside">
-                    <Button variant="primary" className="btnWide" type="button" onClick={() => onNavigate('home')}>
-                      Find a sitter
-                    </Button>
-                    <Button variant="outline" className="btnWide" type="button" onClick={() => setSection('messages')}>
-                      Send message
-                    </Button>
-                  </div>
-                </div>
-              </section>
-
-              <div className="profileColumns">
-                <div className="profileMain">
-                  <section className="cardSurface blockPad">
+            <div className="profileColumns owner-profile-columns">
+              <div className="profileMain">
+                <section className="owner-profile-card blockPad">
                     <h2 className="typeH2">About</h2>
                     <p className="typeBody">
                       You are registered as a pet owner on Loomahoidja. Keeping your profile, contact details, and pet
                       information up to date helps sitters prepare for safe, happy visits.
                     </p>
-                  </section>
-                  <section className="cardSurface blockPad">
-                    <h2 className="typeH2">Pets on your account</h2>
+                </section>
+                <section className="owner-profile-card blockPad">
+                  <h2 className="typeH2">Pets on your account</h2>
                     {petSpeciesTags.length > 0 ? (
                       <div className="tagRow" style={{ marginBottom: '12px' }}>
                         {petSpeciesTags.map((t) => (
@@ -692,9 +707,9 @@ function DashboardPage({
                         ))}
                       </ul>
                     )}
-                  </section>
-                  <section className="cardSurface blockPad">
-                    <h2 className="typeH2">Contact</h2>
+                </section>
+                <section className="owner-profile-card blockPad">
+                  <h2 className="typeH2">Contact</h2>
                     <p className="typeBody">
                       Sitters may use your email or phone to coordinate before a booking. Make sure these are current in
                       your account details (sidebar / account settings when available).
@@ -705,10 +720,10 @@ function DashboardPage({
                       <dt>Phone</dt>
                       <dd>{currentUser.phone || '—'}</dd>
                     </dl>
-                  </section>
-                </div>
-                <aside className="profileAside">
-                  <section className="cardSurface blockPad">
+                </section>
+              </div>
+              <aside className="profileAside">
+                <section className="owner-profile-card blockPad">
                     <h2 className="typeH3">Account</h2>
                     <dl className="owner-dl">
                       <dt>Name</dt>
@@ -718,9 +733,9 @@ function DashboardPage({
                       <dt>City</dt>
                       <dd>{currentUser.city || '—'}</dd>
                     </dl>
-                  </section>
-                  <section className="cardSurface blockPad">
-                    <h2 className="typeH3">Location</h2>
+                </section>
+                <section className="owner-profile-card blockPad">
+                  <h2 className="typeH3">Location</h2>
                     <p className="typeBodySmall textMuted">
                       Approximate area — exact address is shared with sitters only when you choose.
                     </p>
@@ -732,10 +747,9 @@ function DashboardPage({
                         referrerPolicy="no-referrer-when-downgrade"
                       />
                     </div>
-                  </section>
-                </aside>
-              </div>
-            </>
+                </section>
+              </aside>
+            </div>
           )}
         </div>
       </div>
