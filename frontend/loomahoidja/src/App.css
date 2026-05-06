@@ -2614,7 +2614,7 @@ button:hover {
 
 .owner-sidebar {
   min-height: 100vh;
-  background: #3d2c3b;
+  background: #252028;
   color: #edd4d7;
   display: flex;
   flex-direction: column;
@@ -2626,7 +2626,7 @@ button:hover {
   align-items: center;
   justify-content: flex-start;
   padding: 0 22px;
-  background: #3d2c3b;
+  background: #252028;
   box-sizing: border-box;
 }
 
@@ -2721,7 +2721,7 @@ button:hover {
   align-items: center;
   gap: 24px;
   padding: 0 42px 0 30px;
-  background: #3d2f3a;
+  background: #3d2c3b;
   border-bottom: 1px solid rgba(235, 186, 185, 0.18);
   box-sizing: border-box;
 }
@@ -3566,7 +3566,7 @@ button:hover {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #3d2f3a;
+  background: #3d2c3b;
   border-bottom: 1px solid rgba(235, 186, 185, 0.18);
   backdrop-filter: none;
 }
