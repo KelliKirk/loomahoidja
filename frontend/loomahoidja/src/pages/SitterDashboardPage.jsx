@@ -395,117 +395,184 @@ export default function SitterDashboardPage() {
           ) : null}
 
           {section === 'profile' ? (
-            <section className="owner-card owner-chat-card">
-              <div className="owner-chat-header">
-                <h2>Profile settings</h2>
-                <p className="owner-chat-subtitle typeBodySmall textMuted">
-                  Update your sitter profile details and photo.
-                </p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 16 }}>
-                <div>
-                  <button
-                    type="button"
-                    className="owner-profile-avatar-hit"
-                    onClick={() => photoInputRef.current?.click()}
-                    disabled={photoUploading}
-                    aria-label={profilePhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
-                  >
-                    <Avatar src={profilePhotoUrl} name={user?.fullName || 'Sitter'} size={96} />
-                  </button>
-                  <input
-                    ref={photoInputRef}
-                    type="file"
-                    className="owner-photo-file-input"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    onChange={handlePhotoSelected}
-                  />
-                  <p className="typeCaption textMuted" style={{ marginTop: 8 }}>
-                    {photoUploading ? 'Uploading…' : profilePhotoUrl ? 'Click photo to replace' : 'Click to add a photo'}
-                  </p>
-                </div>
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    saveSitterProfile()
-                  }}
-                >
-                  {profileError ? <div className="formError" style={{ marginBottom: 12 }}>{profileError}</div> : null}
-
-                  <div className="form-group">
-                    <label>Hourly rate (€)</label>
-                    <input
-                      className="input"
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={sitterHourlyRate}
-                      onChange={(e) => setSitterHourlyRate(e.target.value)}
-                      placeholder="8.5"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>City</label>
-                    <input
-                      className="input"
-                      value={sitterCity}
-                      onChange={(e) => setSitterCity(e.target.value)}
-                      placeholder="e.g. Tartu"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Bio</label>
-                    <textarea
-                      value={sitterBio}
-                      onChange={(e) => setSitterBio(e.target.value)}
-                      placeholder="Tell owners about your experience…"
-                      rows="4"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Animals you care for</label>
-                    <div className="pillGrid">
-                      {['dog', 'cat', 'bird', 'rabbit', 'rodent', 'fish'].map((t) => (
+            <div className="owner-profile-page-grid">
+              <div className="owner-profile-page-primary">
+                <div className="owner-profile-hero-strip">
+                  <div className="owner-profile-hero-strip-inner">
+                    <div className="owner-profile-hero-layout">
+                      <div className="owner-profile-avatar-block">
                         <button
-                          key={t}
                           type="button"
-                          className={`filterPill ${sitterTypes.has(t) ? 'on' : ''}`}
-                          onClick={() => toggleType(t)}
+                          className="owner-profile-avatar-hit"
+                          onClick={() => photoInputRef.current?.click()}
+                          disabled={photoUploading}
+                          aria-label={profilePhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
                         >
-                          {t}
+                          <Avatar src={profilePhotoUrl} name={user?.fullName || 'Sitter'} size={96} />
                         </button>
-                      ))}
+                        <input
+                          ref={photoInputRef}
+                          type="file"
+                          className="owner-photo-file-input"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          onChange={handlePhotoSelected}
+                        />
+                        <p className="typeCaption textMuted owner-profile-upload-hint">
+                          {photoUploading
+                            ? 'Uploading…'
+                            : profilePhotoUrl
+                              ? 'Click photo to replace'
+                              : 'Click to add a photo'}
+                        </p>
+                      </div>
+
+                      <div className="owner-profile-hero-text">
+                        <h1 className="typeH1 owner-profile-hero-title">{user?.fullName || 'Sitter profile'}</h1>
+                        <p className="typeBodySmall owner-profile-hero-sub">
+                          {sitterCity?.trim() ? `${sitterCity.trim()} · ` : ''}
+                          Profile settings
+                        </p>
+                        <div className="tagRow">
+                          {Array.from(sitterTypes).length === 0 ? (
+                            <span className="tag">No pet types yet</span>
+                          ) : (
+                            Array.from(sitterTypes).map((t) => (
+                              <span key={t} className="tag">
+                                {t.charAt(0).toUpperCase() + t.slice(1)}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                        <p className="typeBody owner-profile-hero-meta">
+                          {myProfile ? 'This is your public sitter profile preview and settings.' : 'Create your sitter profile below.'}
+                        </p>
+                      </div>
+
+                      <div className="owner-profile-hero-aside">
+                        <Button variant="primary" className="btnWide" type="button" onClick={() => setSection('messages')}>
+                          Messages
+                        </Button>
+                        <Button variant="outline" className="btnWide owner-profile-hero-outline-btn" type="button" onClick={() => navigate('/')}>
+                          Back to home
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="form-group">
-                    <label className="checkRow">
-                      <input
-                        type="checkbox"
-                        checked={sitterHasChildren}
-                        onChange={(e) => setSitterHasChildren(e.target.checked)}
-                      />
-                      Has children at home
-                    </label>
-                    <label className="checkRow">
-                      <input
-                        type="checkbox"
-                        checked={sitterHasAnimals}
-                        onChange={(e) => setSitterHasAnimals(e.target.checked)}
-                      />
-                      Has other pets at home
-                    </label>
-                  </div>
+                <div className="owner-profile-main-flow">
+                  <section className="owner-profile-section">
+                    <h2 className="owner-profile-section-title">Edit sitter profile</h2>
+                    {profileError ? <div className="formError owner-profile-save-error">{profileError}</div> : null}
+                    {profileLoading ? <p className="typeBodySmall textMuted">Loading profile…</p> : null}
 
-                  <Button variant="primary" type="submit" className="btnWide" disabled={profileSaving || profileLoading}>
-                    {profileSaving ? 'Saving…' : 'Save profile'}
-                  </Button>
-                </form>
+                    <form
+                      className="owner-profile-edit-form"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        saveSitterProfile()
+                      }}
+                    >
+                      <div className="form-group">
+                        <label>Hourly rate (€)</label>
+                        <input
+                          className="input"
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={sitterHourlyRate}
+                          onChange={(e) => setSitterHourlyRate(e.target.value)}
+                          placeholder="8.5"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>City</label>
+                        <input
+                          className="input"
+                          value={sitterCity}
+                          onChange={(e) => setSitterCity(e.target.value)}
+                          placeholder="e.g. Tartu"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Bio</label>
+                        <textarea
+                          value={sitterBio}
+                          onChange={(e) => setSitterBio(e.target.value)}
+                          placeholder="Tell owners about your experience…"
+                          rows="5"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Animals you care for</label>
+                        <div className="pillGrid">
+                          {['dog', 'cat', 'bird', 'rabbit', 'rodent', 'fish'].map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              className={`filterPill ${sitterTypes.has(t) ? 'on' : ''}`}
+                              onClick={() => toggleType(t)}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="checkRow">
+                          <input
+                            type="checkbox"
+                            checked={sitterHasChildren}
+                            onChange={(e) => setSitterHasChildren(e.target.checked)}
+                          />
+                          Has children at home
+                        </label>
+                        <label className="checkRow">
+                          <input
+                            type="checkbox"
+                            checked={sitterHasAnimals}
+                            onChange={(e) => setSitterHasAnimals(e.target.checked)}
+                          />
+                          Has other pets at home
+                        </label>
+                      </div>
+
+                      <Button variant="primary" type="submit" className="owner-profile-save-btn" disabled={profileSaving || profileLoading}>
+                        {profileSaving ? 'Saving…' : 'Save profile'}
+                      </Button>
+                    </form>
+                  </section>
+                </div>
               </div>
-            </section>
+
+              <aside className="owner-profile-rail" aria-label="Profile preview">
+                <div className="owner-profile-rail-inner">
+                  <section className="owner-profile-rail-card">
+                    <h2 className="owner-profile-rail-card-title">Public profile</h2>
+                    <dl className="owner-dl owner-dl--rail">
+                      <dt>Name</dt>
+                      <dd>{user?.fullName || '—'}</dd>
+                      <dt>City</dt>
+                      <dd>{sitterCity?.trim() ? sitterCity.trim() : '—'}</dd>
+                      <dt>Rate</dt>
+                      <dd>{sitterHourlyRate?.trim() ? `${sitterHourlyRate.trim()} € / hour` : '—'}</dd>
+                    </dl>
+                    {myProfile?.id ? (
+                      <Button
+                        variant="outline"
+                        className="btnWide"
+                        type="button"
+                        onClick={() => navigate(`/sitter/${myProfile.id}`)}
+                      >
+                        View public page
+                      </Button>
+                    ) : null}
+                  </section>
+                </div>
+              </aside>
+            </div>
           ) : null}
         </div>
       </div>
