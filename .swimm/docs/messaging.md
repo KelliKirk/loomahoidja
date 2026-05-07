@@ -13,7 +13,7 @@ Allow a pet owner and sitter to keep each other updated during/after a booking, 
 - `ConversationParticipant`: links users to conversations.
 - `Message`: `type=text|image`, `text` (optional)
 - `MessageAttachment`: currently used for images (`messages/<filename>`)
-- `Notification`: used for `new_message` notifications per recipient
+- `Notification`: used for `new_message` and booking-related types per recipient
 
 **Tables are prefixed with `chat_`** to avoid collisions with existing tables in the `petsitting` database:
 - `chat_conversations`
@@ -52,13 +52,16 @@ All endpoints require `Authorization: Bearer <JWT>` unless noted.
 - image upload → attachment present in message list
 
 ### Demo data (optional)
-If you want sample chat data for UI development, run:
+Seeded chat links the two **demo users** created by `seed-demo-users.js` (see **Setup & demo** doc or root `README.md`). **`seed-demo-messages.js` expects those users to exist** (by email).
+
+1. In `backend/.env`, set **`DEMO_SEED_PASSWORD`** (shared password for both demo accounts when seeding). **Do not commit** `.env` or paste passwords into GitHub.
+2. Run the full chain (order matters), e.g.:
 
 ```bash
 cd backend
-node seeders/seed-demo-users.js
-node seeders/seed-demo-messages.js
+npm run seed
 ```
 
-The seeder is idempotent and creates a demo conversation with a tiny (1x1) PNG attachment under `backend/uploads/messages/`.
+Or manually: `seed-demo-users.js` → sitter profile + animal types → `demo-animals.js` → **`seed-demo-messages.js`**.
 
+The message seeder is idempotent and creates a demo conversation with a tiny (1x1) PNG under `backend/uploads/messages/`.

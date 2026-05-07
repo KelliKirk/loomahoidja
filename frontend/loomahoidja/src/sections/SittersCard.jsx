@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { apiForm, apiJson } from '../api'
 
-export default function SittersCard({ baseUrl, currentUser, run }) {
+export default function SittersCard({ baseUrl, token, currentUser, run }) {
   const [sitters, setSitters] = useState([])
   const [busy, setBusy] = useState(false)
 
@@ -59,7 +59,7 @@ export default function SittersCard({ baseUrl, currentUser, run }) {
               animalTypes.forEach((t) => fd.append('animalTypes', t))
               if (photo) fd.append('photo', photo)
 
-              const data = await apiForm({ baseUrl, path: '/sitters/profile', formData: fd })
+              const data = await apiForm({ baseUrl, path: '/sitters/profile', token, formData: fd })
               return data
             }).finally(() => setBusy(false))
           }}
@@ -112,7 +112,7 @@ export default function SittersCard({ baseUrl, currentUser, run }) {
               <input type="checkbox" checked={hasChildren} onChange={(e) => setHasChildren(e.target.checked)} />
               hasChildren
             </label>
-            <button className="btn btnPrimary" type="submit" disabled={busy}>
+            <button className="btn btnPrimary" type="submit" disabled={busy || !token?.trim()}>
               Salvesta profiil
             </button>
           </div>

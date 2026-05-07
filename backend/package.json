@@ -9,7 +9,8 @@
     "test": "npm run test:unit",
     "test:unit": "NODE_ENV=test JWT_SECRET=test-secret jest --runInBand test/unit",
     "test:integration": "NODE_ENV=test JWT_SECRET=test-secret jest --runInBand test/integration",
-    "test:all": "NODE_ENV=test JWT_SECRET=test-secret jest --runInBand"
+    "test:all": "NODE_ENV=test JWT_SECRET=test-secret jest --runInBand",
+    "seed": "node seeders/seed-all.js"
   },
   "keywords": [],
   "author": "",

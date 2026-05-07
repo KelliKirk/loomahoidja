@@ -7,6 +7,19 @@ const databaseName =
   process.env.DB_DATABASE ||
   'petsitting';
 
+const useSsl =
+  process.env.DB_SSL === '1' ||
+  process.env.DB_SSL === 'true' ||
+  process.env.DB_SSL === 'yes';
+
+const dialectOptions = {};
+if (useSsl) {
+  dialectOptions.ssl =
+    process.env.DB_SSL_REJECT_UNAUTHORIZED === '0'
+      ? { rejectUnauthorized: false }
+      : { rejectUnauthorized: true };
+}
+
 const sequelize = new Sequelize(
   databaseName,
   process.env.DB_USER || 'root',
@@ -16,6 +29,7 @@ const sequelize = new Sequelize(
     dialect: 'mysql',
     dialectModule: require('mysql2'),
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    ...(Object.keys(dialectOptions).length ? { dialectOptions } : {}),
     pool: {
       max: 5,
       min: 0,

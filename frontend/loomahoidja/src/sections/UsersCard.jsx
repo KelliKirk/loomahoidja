@@ -7,7 +7,7 @@ export default function UsersCard({ baseUrl, run, onToken, onUser, onAuth }) {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [city, setCity] = useState('')
-  const [password, setPassword] = useState('Test123!')
+  const [password, setPassword] = useState('')
   const [testUserId, setTestUserId] = useState('')
   const [testEmail, setTestEmail] = useState('')
   const [testRole, setTestRole] = useState('owner')

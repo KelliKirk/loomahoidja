@@ -4,7 +4,7 @@ const { User, SitterProfile, SitterAnimalType } = require('../models');
 
 const animalTypesForSitters = [
   {
-    userEmail: 'sitter@test.com',
+    userEmail: 'toru@example.com',
     animalTypes: ['dog', 'cat', 'bird'],
   },
 ];

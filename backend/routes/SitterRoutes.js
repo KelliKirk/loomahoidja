@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
+const auth = require('../middleware/auth');
 const {
   getAll,
   getOne,
@@ -15,7 +16,7 @@ const upload = multer({ storage });
 
 router.get('/',           getAll);
 router.get('/:id',        getOne);
-router.post('/profile',   upload.single('photo'), upsertProfile);
-router.delete('/profile/:id', deleteProfile);
+router.post('/profile',   auth, upload.single('photo'), upsertProfile);
+router.delete('/profile/:id', auth, deleteProfile);
 
 module.exports = router;

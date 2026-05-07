@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { apiJson } from '../api'
+import { pickInitialApiBaseUrlFromStorage, resolveApiBaseUrl } from '../lib/apiBaseUrl'
 
 const AuthContext = createContext(null)
 
@@ -8,18 +9,11 @@ const LS_USER = 'loom_user'
 const LS_PROFILE = 'loom_profile'
 const LS_API = 'apiBaseUrl'
 
-function defaultApiBaseUrl() {
-  const fromEnv = import.meta.env.VITE_API_URL
-  if (fromEnv != null && String(fromEnv).trim() !== '') {
-    return String(fromEnv).replace(/\/$/, '')
-  }
-  return 'http://localhost:3001/api'
-}
-
 export function AuthProvider({ children }) {
-  const [apiBaseUrl, setApiBaseUrlState] = useState(
-    () => localStorage.getItem(LS_API) || defaultApiBaseUrl(),
-  )
+  const [apiBaseUrl, setApiBaseUrlState] = useState(() => {
+    const fromLs = pickInitialApiBaseUrlFromStorage(LS_API, (k) => localStorage.getItem(k))
+    return fromLs || resolveApiBaseUrl()
+  })
   const [token, setTokenState] = useState(() => localStorage.getItem(LS_TOKEN) || '')
   const [user, setUserState] = useState(() => {
     try {

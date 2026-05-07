@@ -11,10 +11,24 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
+
 // Set database in app for use in routes/controllers
 app.set('sequelize', sequelize);
 
-app.use(cors());
+const corsEnv = process.env.CORS_ORIGIN;
+const corsOptions = corsEnv && corsEnv.trim()
+  ? {
+      origin: corsEnv
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    }
+  : { origin: true };
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

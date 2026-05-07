@@ -97,6 +97,8 @@ Headers: Authorization: Bearer {token}
 
 ## Seed Demo Data
 
+Set **`DEMO_SEED_PASSWORD`** in `backend/.env` (same value is used for both demo accounts). **Do not commit** `.env` or share passwords in the issue tracker—only this template documents the variable name.
+
 Load demo users, sitter profiles, animals, and animal types:
 
 ```bash
@@ -118,9 +120,13 @@ node seeders/seed-demo-messages.js   # Creates demo conversation + messages (+ i
 ```
 
 **Demo Data Created:**
-- Users: `owner@test.com` and `sitter@test.com` (credentials are defined in seeders; do not treat them as production secrets)
-- Sitter profile for Jaan Tamm (€8.50/hr, handles dogs/cats/birds)
-- 5 animals: Max, Luna, Charlie, Milo, Buddy
+- **Darude Sandstorm** (owner) — `darude@example.com`
+- **Toru Jüri** (sitter) — `toru@example.com`  
+  Both use the password you set as **`DEMO_SEED_PASSWORD`** when you ran the user seed.
+- Sitter profile for Toru Jüri (€8.50/hr, handles dogs/cats/birds)
+- 5 animals for Darude: Max, Luna, Charlie, Milo, Buddy
+
+Use **Sign in** with these accounts (`/auth/login`). Re-run seeders on a fresh database if you change emails or need to recreate rows.
 
 See `SEEDING_GUIDE.md` for detailed seeding documentation.
 

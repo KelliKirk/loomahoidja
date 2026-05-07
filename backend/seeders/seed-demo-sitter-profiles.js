@@ -4,7 +4,7 @@ const { User, SitterProfile } = require('../models');
 
 const demoSitterProfiles = [
   {
-    userEmail: 'sitter@test.com',
+    userEmail: 'toru@example.com',
     hourlyRate: 8.50,
     bio: 'I love animals. I have experience with both cats and dogs.',
     hasAnimals: false,

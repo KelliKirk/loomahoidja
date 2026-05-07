@@ -31,10 +31,11 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-// POST /api/sitters/profile
+// POST /api/sitters/profile (authenticated; user id comes from JWT, not body)
 exports.upsertProfile = async (req, res, next) => {
   try {
-    const { userId, hourlyRate, bio, hasAnimals, hasChildren, city } = req.body;
+    const userId = req.user.id;
+    const { hourlyRate, bio, hasAnimals, hasChildren, city } = req.body;
     let { animalTypes } = req.body;
     if (typeof animalTypes === 'string') {
       try {
@@ -92,6 +93,9 @@ exports.deleteProfile = async (req, res, next) => {
   try {
     const profile = await SitterProfile.findByPk(req.params.id);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    if (Number(profile.userId) !== Number(req.user.id)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     await profile.destroy();
     res.json({ message: 'Profile has been deleted' });
   } catch (err) {

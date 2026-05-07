@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
+import { resolveApiBaseUrl } from './lib/apiBaseUrl'
 import { apiJson } from './api'
 import AppHeader from './components/AppHeader'
 import Loader from './components/Loader'
@@ -46,7 +47,10 @@ function AuthLayout() {
 }
 
 function apiOriginFromBase(apiBaseUrl) {
-  return apiBaseUrl.replace(/\/?api\/?$/, '') || 'http://localhost:3001'
+  const trimmed = String(apiBaseUrl || '').replace(/\/$/, '')
+  if (!trimmed) return resolveApiBaseUrl().replace(/\/?api\/?$/i, '')
+  const origin = trimmed.replace(/\/?api\/?$/i, '')
+  return origin || 'http://localhost:3001'
 }
 
 function HomeRoute() {

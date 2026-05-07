@@ -104,7 +104,7 @@ export default function DevToolsPage() {
             <AnimalsCard baseUrl={apiBaseUrl} token={token} currentUser={user} run={run} />
           </Suspense>
           <Suspense fallback={<CardSkeleton title="Hoidjad" />}>
-            <SittersCard baseUrl={apiBaseUrl} currentUser={user} run={run} />
+            <SittersCard baseUrl={apiBaseUrl} token={token} currentUser={user} run={run} />
           </Suspense>
           <Suspense fallback={<CardSkeleton title="Vastus" wide />}>
             <LastResponseCard last={last} error={error} />

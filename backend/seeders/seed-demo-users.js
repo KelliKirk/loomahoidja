@@ -5,25 +5,31 @@ const { User } = require('../models');
 
 const demoUsers = [
   {
-    email: 'owner@test.com',
-    fullName: 'Mari Mets',
+    email: 'darude@example.com',
+    fullName: 'Darude Sandstorm',
     phone: '5123456',
     city: 'Tallinn',
     role: 'owner',
-    password: 'Test123!',
   },
   {
-    email: 'sitter@test.com',
-    fullName: 'Jaan Tamm',
+    email: 'toru@example.com',
+    fullName: 'Toru Jüri',
     phone: '5654321',
     city: 'Tartu',
     role: 'sitter',
-    password: 'Test123!',
   },
 ];
 
 async function seedUsers() {
   try {
+    const seedPassword = process.env.DEMO_SEED_PASSWORD;
+    if (!seedPassword || !String(seedPassword).trim()) {
+      console.error(
+        'Missing DEMO_SEED_PASSWORD. Set it in backend/.env before seeding demo users (never commit real passwords).',
+      );
+      process.exit(1);
+    }
+
     console.log('🌱 Seeding demo users...\n');
 
     await sequelize.authenticate();
@@ -32,7 +38,7 @@ async function seedUsers() {
       const existing = await User.findOne({ where: { email: user.email } });
 
       if (!existing) {
-        const passwordHash = await bcrypt.hash(user.password, 10);
+        const passwordHash = await bcrypt.hash(seedPassword, 10);
         await User.create({
           email: user.email,
           fullName: user.fullName,

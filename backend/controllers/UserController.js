@@ -27,7 +27,11 @@ class UserController {
         return res.status(409).json({ error: 'User with this email already exists' });
       }
 
-      const passwordHash = await bcrypt.hash(password || 'Test123!', 10);
+      if (!password || !String(password).trim()) {
+        return res.status(400).json({ error: 'password is required' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
 
       const user = await User.create({
         email,

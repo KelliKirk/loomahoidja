@@ -12,8 +12,8 @@ const {
   Notification,
 } = require('../models');
 
-const OWNER_EMAIL = 'owner@test.com';
-const SITTER_EMAIL = 'sitter@test.com';
+const OWNER_EMAIL = 'darude@example.com';
+const SITTER_EMAIL = 'toru@example.com';
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'messages');
 const DEMO_IMAGE_FILENAME = 'demo-1px.png';

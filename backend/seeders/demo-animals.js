@@ -4,7 +4,7 @@ const { Animal, User } = require('../models');
 
 const demoAnimalsData = [
   {
-    userEmail: 'owner@test.com',
+    userEmail: 'darude@example.com',
     animals: [
       {
         name: 'Max',
