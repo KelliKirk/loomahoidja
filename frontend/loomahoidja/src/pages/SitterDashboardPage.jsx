@@ -37,6 +37,8 @@ export default function SitterDashboardPage() {
   const navigate = useNavigate()
   const firstName = user?.fullName?.split(' ')[0] || 'Sitter'
   const initials = useMemo(() => initialsFromFullName(user?.fullName), [user?.fullName])
+  const [section, setSection] = useState('overview')
+  const unreadCount = 0
 
   const [bookingRequests, setBookingRequests] = useState(INITIAL_REQUESTS)
   const today = new Date()
@@ -71,12 +73,16 @@ export default function SitterDashboardPage() {
             <button type="button" onClick={() => navigate('/')}>
               Find a sitter
             </button>
-            <button type="button" className="active">
+            <button type="button" className={section === 'overview' ? 'active' : ''} onClick={() => setSection('overview')}>
               Dashboard
             </button>
-            <button type="button" className="message-tab" onClick={() => { /* placeholder */ }}>
+            <button
+              type="button"
+              className={`message-tab ${section === 'messages' ? 'active' : ''}`.trim()}
+              onClick={() => setSection('messages')}
+            >
               Messages
-              <span aria-label="3 unread messages">3</span>
+              {unreadCount > 0 ? <span aria-label={`${unreadCount} unread messages`}>{unreadCount}</span> : null}
             </button>
           </div>
         </div>
@@ -104,27 +110,27 @@ export default function SitterDashboardPage() {
           <span>Sitter</span>
         </div>
         <nav className="owner-side-nav" aria-label="Sitter dashboard">
-          <button className="active" type="button">
+          <button className={section === 'overview' ? 'active' : ''} type="button" onClick={() => setSection('overview')}>
             <FontAwesomeIcon icon={faChartLine} className="owner-nav-icon" fixedWidth />
             Overview
           </button>
-          <button type="button">
+          <button className={section === 'bookings' ? 'active' : ''} type="button" onClick={() => setSection('bookings')}>
             <FontAwesomeIcon icon={faCalendarCheck} className="owner-nav-icon" fixedWidth />
             Bookings
           </button>
-          <button type="button">
+          <button className={section === 'calendar' ? 'active' : ''} type="button" onClick={() => setSection('calendar')}>
             <FontAwesomeIcon icon={faCalendarDays} className="owner-nav-icon" fixedWidth />
             Calendar
           </button>
-          <button type="button">
+          <button className={section === 'messages' ? 'active' : ''} type="button" onClick={() => setSection('messages')}>
             <FontAwesomeIcon icon={faEnvelope} className="owner-nav-icon" fixedWidth />
             Messages
           </button>
-          <button type="button">
+          <button className={section === 'profile' ? 'active' : ''} type="button" onClick={() => setSection('profile')}>
             <FontAwesomeIcon icon={faUserGear} className="owner-nav-icon" fixedWidth />
             Profile settings
           </button>
-          <button type="button">
+          <button className={section === 'earnings' ? 'active' : ''} type="button" onClick={() => setSection('earnings')}>
             <FontAwesomeIcon icon={faCoins} className="owner-nav-icon" fixedWidth />
             Earnings
           </button>
@@ -133,145 +139,164 @@ export default function SitterDashboardPage() {
 
       <div className="owner-workspace">
         <div className="owner-content">
-          <div className="owner-welcome">
-            <h1>Welcome back, {firstName}</h1>
-            <p>You have {bookingRequests.length} new booking {bookingRequests.length === 1 ? 'request' : 'requests'}</p>
-          </div>
+          {section !== 'messages' && (
+            <div className="owner-welcome">
+              <h1>Welcome back, {firstName}</h1>
+              <p>
+                You have {bookingRequests.length} new booking {bookingRequests.length === 1 ? 'request' : 'requests'}
+              </p>
+            </div>
+          )}
 
-          <div className="owner-stats-grid">
-            <div className="owner-stat-card highlighted">
-              <span className="owner-stat-icon calendar-icon" aria-hidden="true">
-                <FontAwesomeIcon icon={faCalendarCheck} />
-              </span>
-              <span className="owner-stat-label">New requests</span>
-              <strong>{bookingRequests.length}</strong>
-              <small>awaiting response</small>
-            </div>
-            <div className="owner-stat-card">
-              <span className="owner-stat-icon calendar-icon" aria-hidden="true">
-                <FontAwesomeIcon icon={faCalendarDays} />
-              </span>
-              <span className="owner-stat-label">Active bookings</span>
-              <strong>2</strong>
-              <small>this week</small>
-            </div>
-            <div className="owner-stat-card">
-              <span className="owner-stat-icon outline" aria-hidden="true">
-                <FontAwesomeIcon icon={faCoins} />
-              </span>
-              <span className="owner-stat-label">This month</span>
-              <strong>127 €</strong>
-              <small>earned</small>
-            </div>
-            <div className="owner-stat-card">
-              <span className="owner-stat-icon success" aria-hidden="true">
-                <FontAwesomeIcon icon={faChartLine} />
-              </span>
-              <span className="owner-stat-label">Your rating</span>
-              <strong>4.9</strong>
-              <small>28 reviews</small>
-            </div>
-          </div>
-
-          <section className="owner-bookings-section">
-            <h2>Booking requests</h2>
-            <div className="owner-bookings-table sitter-requests-table">
-              <div className="owner-table-row owner-table-head">
-                <span>Owner</span>
-                <span>Pet</span>
-                <span>Dates</span>
-                <span>Price</span>
-                <span></span>
-              </div>
-              {bookingRequests.length === 0 && (
-                <div className="owner-table-row">
-                  <span style={{ gridColumn: '1 / -1', padding: '10px 0' }}>No pending requests 🎉</span>
-                </div>
-              )}
-              {bookingRequests.map((r, index) => (
-                <div key={index} className="owner-table-row">
-                  <span>{r.owner}</span>
-                  <span>{r.pet}</span>
-                  <span>{r.dates}</span>
-                  <span>{r.price}</span>
-                  <div className="owner-table-actions" aria-label="Request actions">
-                    <button type="button" className="btn-accept" onClick={() => handleAccept(index)}>
-                      Accept
-                    </button>
-                    <button type="button" className="btn-decline" onClick={() => handleDecline(index)}>
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="owner-bottom-grid">
-
-            <section className="owner-card">
-              <h2>Availability calendar</h2>
-              <div className="calendar-header">
-                <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
-                  ‹
-                </button>
-                <span className="calendar-month">
-                  {MONTH_NAMES[calMonth]} {calYear}
+          {section === 'overview' && (
+            <div className="owner-stats-grid">
+              <div className="owner-stat-card highlighted">
+                <span className="owner-stat-icon calendar-icon" aria-hidden="true">
+                  <FontAwesomeIcon icon={faCalendarCheck} />
                 </span>
-                <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
-                  ›
-                </button>
+                <span className="owner-stat-label">New requests</span>
+                <strong>{bookingRequests.length}</strong>
+                <small>awaiting response</small>
               </div>
-              <div className="calendar-weekdays">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                  <span key={i}>{d}</span>
-                ))}
+              <div className="owner-stat-card">
+                <span className="owner-stat-icon calendar-icon" aria-hidden="true">
+                  <FontAwesomeIcon icon={faCalendarDays} />
+                </span>
+                <span className="owner-stat-label">Active bookings</span>
+                <strong>2</strong>
+                <small>this week</small>
               </div>
-              <div className="calendar-grid">
-                {Array(getMonthStartOffset(calYear, calMonth)).fill(null).map((_, i) => (
-                  <div key={`blank-${i}`} className="day empty" />
-                ))}
-                {Array.from({ length: daysInMonth(calYear, calMonth) }, (_, i) => i + 1).map(day => {
-                  const isToday = today.getFullYear() === calYear
-                    && today.getMonth() === calMonth
-                    && today.getDate() === day
-                  return (
-                    <div key={day} className={`day available${isToday ? ' today' : ''}`}>
-                      {day}
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="calendar-legend">
-                <div className="legend-item">
-                  <div className="legend-box available" /><span>Available</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-box booked" /><span>Busy</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-box today" /><span>Today</span>
-                </div>
-              </div>
-            </section>
-
-            <section className="owner-card owner-earnings-card" aria-label="Earnings">
-              <h2>Earnings</h2>
-              <div className="owner-earnings-stack">
-              <article className="owner-stat-card owner-stat-card--compact">
+              <div className="owner-stat-card">
+                <span className="owner-stat-icon outline" aria-hidden="true">
+                  <FontAwesomeIcon icon={faCoins} />
+                </span>
                 <span className="owner-stat-label">This month</span>
                 <strong>127 €</strong>
                 <small>earned</small>
-              </article>
-              <article className="owner-stat-card owner-stat-card--compact">
-                <span className="owner-stat-label">Total earned</span>
-                <strong>843 €</strong>
-                <small>all time</small>
-              </article>
+              </div>
+              <div className="owner-stat-card">
+                <span className="owner-stat-icon success" aria-hidden="true">
+                  <FontAwesomeIcon icon={faChartLine} />
+                </span>
+                <span className="owner-stat-label">Your rating</span>
+                <strong>4.9</strong>
+                <small>28 reviews</small>
+              </div>
+            </div>
+          )}
+
+          {section === 'overview' || section === 'bookings' ? (
+            <section className="owner-bookings-section">
+              <h2>Booking requests</h2>
+              <div className="owner-bookings-table sitter-requests-table">
+                <div className="owner-table-row owner-table-head">
+                  <span>Owner</span>
+                  <span>Pet</span>
+                  <span>Dates</span>
+                  <span>Price</span>
+                  <span></span>
+                </div>
+                {bookingRequests.length === 0 && (
+                  <div className="owner-table-row">
+                    <span style={{ gridColumn: '1 / -1', padding: '10px 0' }}>No pending requests 🎉</span>
+                  </div>
+                )}
+                {bookingRequests.map((r, index) => (
+                  <div key={index} className="owner-table-row">
+                    <span>{r.owner}</span>
+                    <span>{r.pet}</span>
+                    <span>{r.dates}</span>
+                    <span>{r.price}</span>
+                    <div className="owner-table-actions" aria-label="Request actions">
+                      <button type="button" className="btn-accept" onClick={() => handleAccept(index)}>
+                        Accept
+                      </button>
+                      <button type="button" className="btn-decline" onClick={() => handleDecline(index)}>
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
+          ) : null}
 
-          </div>
+          {section === 'overview' || section === 'calendar' || section === 'earnings' ? (
+            <div className="owner-bottom-grid">
+
+              <section className="owner-card">
+                <h2>Availability calendar</h2>
+                <div className="calendar-header">
+                  <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
+                    ‹
+                  </button>
+                  <span className="calendar-month">
+                    {MONTH_NAMES[calMonth]} {calYear}
+                  </span>
+                  <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
+                    ›
+                  </button>
+                </div>
+                <div className="calendar-weekdays">
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                    <span key={i}>{d}</span>
+                  ))}
+                </div>
+                <div className="calendar-grid">
+                  {Array(getMonthStartOffset(calYear, calMonth)).fill(null).map((_, i) => (
+                    <div key={`blank-${i}`} className="day empty" />
+                  ))}
+                  {Array.from({ length: daysInMonth(calYear, calMonth) }, (_, i) => i + 1).map(day => {
+                    const isToday = today.getFullYear() === calYear
+                      && today.getMonth() === calMonth
+                      && today.getDate() === day
+                    return (
+                      <div key={day} className={`day available${isToday ? ' today' : ''}`}>
+                        {day}
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="calendar-legend">
+                  <div className="legend-item">
+                    <div className="legend-box available" /><span>Available</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-box booked" /><span>Busy</span>
+                  </div>
+                  <div className="legend-item">
+                    <div className="legend-box today" /><span>Today</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="owner-card owner-earnings-card" aria-label="Earnings">
+                <h2>Earnings</h2>
+                <div className="owner-earnings-stack">
+                  <article className="owner-stat-card owner-stat-card--compact">
+                    <span className="owner-stat-label">This month</span>
+                    <strong>127 €</strong>
+                    <small>earned</small>
+                  </article>
+                  <article className="owner-stat-card owner-stat-card--compact">
+                    <span className="owner-stat-label">Total earned</span>
+                    <strong>843 €</strong>
+                    <small>all time</small>
+                  </article>
+                </div>
+              </section>
+
+            </div>
+          ) : null}
+
+          {section === 'messages' ? (
+            <section className="owner-card owner-chat-card">
+              <div className="owner-chat-header">
+                <h2>Messages</h2>
+                <p className="owner-chat-subtitle typeBodySmall textMuted">No messages yet.</p>
+              </div>
+            </section>
+          ) : null}
         </div>
       </div>
     </section>
