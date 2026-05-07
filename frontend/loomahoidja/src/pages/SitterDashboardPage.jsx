@@ -570,67 +570,73 @@ export default function SitterDashboardPage() {
           {section === 'overview' || section === 'calendar' || section === 'earnings' ? (
             <div className="owner-bottom-grid">
 
-              <section className="owner-card">
-                <h2>Availability calendar</h2>
-                <div className="calendar-header">
-                  <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
-                    ‹
-                  </button>
-                  <span className="calendar-month">
-                    {MONTH_NAMES[calMonth]} {calYear}
-                  </span>
-                  <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
-                    ›
-                  </button>
-                </div>
-                <div className="calendar-weekdays">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                    <span key={i}>{d}</span>
-                  ))}
-                </div>
-                <div className="calendar-grid">
-                  {Array(getMonthStartOffset(calYear, calMonth)).fill(null).map((_, i) => (
-                    <div key={`blank-${i}`} className="day empty" />
-                  ))}
-                  {Array.from({ length: daysInMonth(calYear, calMonth) }, (_, i) => i + 1).map(day => {
-                    const isToday = today.getFullYear() === calYear
-                      && today.getMonth() === calMonth
-                      && today.getDate() === day
-                    return (
-                      <div key={day} className={`day available${isToday ? ' today' : ''}`}>
-                        {day}
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="calendar-legend">
-                  <div className="legend-item">
-                    <div className="legend-box available" /><span>Available</span>
+              {section === 'overview' || section === 'calendar' ? (
+                <section className="owner-card">
+                  <h2>Availability calendar</h2>
+                  <div className="calendar-header">
+                    <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
+                      ‹
+                    </button>
+                    <span className="calendar-month">
+                      {MONTH_NAMES[calMonth]} {calYear}
+                    </span>
+                    <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
+                      ›
+                    </button>
                   </div>
-                  <div className="legend-item">
-                    <div className="legend-box booked" /><span>Busy</span>
+                  <div className="calendar-weekdays">
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                      <span key={i}>{d}</span>
+                    ))}
                   </div>
-                  <div className="legend-item">
-                    <div className="legend-box today" /><span>Today</span>
+                  <div className="calendar-grid">
+                    {Array(getMonthStartOffset(calYear, calMonth)).fill(null).map((_, i) => (
+                      <div key={`blank-${i}`} className="day empty" />
+                    ))}
+                    {Array.from({ length: daysInMonth(calYear, calMonth) }, (_, i) => i + 1).map((day) => {
+                      const isToday =
+                        today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === day
+                      return (
+                        <div key={day} className={`day available${isToday ? ' today' : ''}`}>
+                          {day}
+                        </div>
+                      )
+                    })}
                   </div>
-                </div>
-              </section>
+                  <div className="calendar-legend">
+                    <div className="legend-item">
+                      <div className="legend-box available" />
+                      <span>Available</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-box booked" />
+                      <span>Busy</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-box today" />
+                      <span>Today</span>
+                    </div>
+                  </div>
+                </section>
+              ) : null}
 
-              <section className="owner-card owner-earnings-card" aria-label="Earnings">
-                <h2>Earnings</h2>
-                <div className="owner-earnings-stack">
-                  <article className="owner-stat-card owner-stat-card--compact">
-                    <span className="owner-stat-label">This month</span>
-                    <strong>127 €</strong>
-                    <small>earned</small>
-                  </article>
-                  <article className="owner-stat-card owner-stat-card--compact">
-                    <span className="owner-stat-label">Total earned</span>
-                    <strong>843 €</strong>
-                    <small>all time</small>
-                  </article>
-                </div>
-              </section>
+              {section === 'overview' || section === 'earnings' ? (
+                <section className="owner-card owner-earnings-card" aria-label="Earnings">
+                  <h2>Earnings</h2>
+                  <div className="owner-earnings-stack">
+                    <article className="owner-stat-card owner-stat-card--compact">
+                      <span className="owner-stat-label">This month</span>
+                      <strong>127 €</strong>
+                      <small>earned</small>
+                    </article>
+                    <article className="owner-stat-card owner-stat-card--compact">
+                      <span className="owner-stat-label">Total earned</span>
+                      <strong>843 €</strong>
+                      <small>all time</small>
+                    </article>
+                  </div>
+                </section>
+              ) : null}
 
             </div>
           ) : null}
