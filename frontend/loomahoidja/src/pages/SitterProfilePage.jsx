@@ -104,6 +104,47 @@ export default function SitterProfilePage() {
 
   const meta = sitter ? SITTER_UI_META[sitter.id] || { badge: 'Saadaval' } : { badge: '' }
 
+  const prototypeOverride = useMemo(() => {
+    const name = String(sitter?.name || '').trim()
+    if (!name) return null
+    if (name === 'Leelo Lameuss') {
+      return {
+        bio:
+          'I have years of experience for dogs and cats of all sizes. I grew up on a farm and have always loved animals. I will treat your pet like family.',
+        hasAnimals: true,
+        hasChildren: true,
+        weekendsOk: true,
+        reviews: [
+          {
+            id: 'r1',
+            name: 'Mati K.',
+            rating: 5.0,
+            text:
+              'Leelo took amazing care of our dog. Very communicative and responsible. Highly recommend!',
+          },
+          {
+            id: 'r2',
+            name: 'Kati M.',
+            rating: 4.7,
+            text: 'Our cats were happy and well-fed. Will definitely book again next time.',
+          },
+        ],
+      }
+    }
+    return null
+  }, [sitter?.name])
+
+  const displayBio = prototypeOverride?.bio || sitter?.bio || '—'
+  const displayHasAnimals = prototypeOverride?.hasAnimals ?? sitter?.hasAnimals
+  const displayHasChildren = prototypeOverride?.hasChildren ?? sitter?.hasChildren
+  const displayWeekendsOk = prototypeOverride?.weekendsOk ?? true
+  const reviews = prototypeOverride?.reviews || []
+
+  const displayTypes = useMemo(() => {
+    const raw = sitter?.animalTypes || []
+    return raw.map((t) => String(t).charAt(0).toUpperCase() + String(t).slice(1).toLowerCase())
+  }, [sitter?.animalTypes])
+
   if (loading) {
     return (
       <div className="centerPad">
@@ -133,7 +174,7 @@ export default function SitterProfilePage() {
                 {sitter.city || '—'} • member since 2026
               </p>
               <div className="tagRow">
-                {(sitter.animalTypes || []).map((t) => (
+                {displayTypes.map((t) => (
                   <span key={t} className="tag">
                     {t}
                   </span>
@@ -160,13 +201,13 @@ export default function SitterProfilePage() {
         <div className="public-profile-page-primary">
           <section className="public-profile-section">
             <h2 className="public-profile-section-title">About</h2>
-            <p className="typeBody">{sitter.bio || '—'}</p>
+            <p className="typeBody">{displayBio}</p>
           </section>
 
           <section className="public-profile-section">
             <h2 className="public-profile-section-title">Animals I care for</h2>
             <div className="tagRow">
-              {(sitter.animalTypes || []).map((t) => (
+              {displayTypes.map((t) => (
                 <span key={`care-${t}`} className="tag">
                   {t}
                 </span>
@@ -177,10 +218,31 @@ export default function SitterProfilePage() {
           <section className="public-profile-section">
             <h2 className="public-profile-section-title">Home details</h2>
             <ul className="typeBody listPlain">
-              <li>{sitter.hasChildren ? '✓' : '✗'} Has children at home</li>
-              <li>{sitter.hasAnimals ? '✓' : '✗'} Has other pets at home</li>
-              <li>✓ Available weekends and holidays (demo)</li>
+              <li>{displayHasChildren ? '✓' : '✗'} Has children at home</li>
+              <li>{displayHasAnimals ? '✓' : '✗'} Has other pets at home</li>
+              <li>{displayWeekendsOk ? '✓' : '✗'} Available on weekends and holidays</li>
             </ul>
+          </section>
+
+          <section className="public-profile-section">
+            <h2 className="public-profile-section-title">Reviews</h2>
+            {reviews.length === 0 ? (
+              <p className="typeBody textMuted">No reviews yet.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 14 }}>
+                {reviews.map((r) => (
+                  <article key={r.id} className="cardSurface blockPad">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                      <strong className="typeBody">{r.name}</strong>
+                      <span className="typeBody">★ {Number(r.rating).toFixed(1)}</span>
+                    </div>
+                    <p className="typeBodySmall textMuted" style={{ marginTop: 8 }}>
+                      {r.text}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
