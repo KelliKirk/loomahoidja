@@ -122,15 +122,15 @@ export default function SitterProfilePage() {
   }
 
   return (
-    <main className="pageMain">
-        <section className="profileHero cardSurface">
-          <span className="sitterBadge profileBadge">{meta.badge}</span>
-          <div className="profileHeroInner">
+    <main className="pageMain sitter-profile-page">
+      <div className="public-profile-hero-strip">
+        <div className="public-profile-hero-inner">
+          <div className="public-profile-hero-layout">
             <Avatar src={sitter.photo} name={sitter.name} size={96} />
-            <div className="profileHeroText">
-              <h1 className="typeH1 profileName">{sitter.name}</h1>
+            <div className="public-profile-hero-text">
+              <h1 className="typeH1 public-profile-hero-title">{sitter.name}</h1>
               <p className="typeBodySmall textMuted">
-                {sitter.city || '—'} • liige alates 2026
+                {sitter.city || '—'} • member since 2026
               </p>
               <div className="tagRow">
                 {(sitter.animalTypes || []).map((t) => (
@@ -140,52 +140,56 @@ export default function SitterProfilePage() {
                 ))}
               </div>
               <p className="typeBody">
-                ★ {Number(sitter.rating).toFixed(1)} • {sitter.reviewCount} arvustust
+                ★ {Number(sitter.rating).toFixed(1)} • {sitter.reviewCount} reviews
               </p>
             </div>
-            <div className="profileHeroAside">
-              <p className="typeH2">{Number(sitter.hourlyRate).toFixed(2)} € / tund</p>
+            <div className="public-profile-hero-aside">
+              <p className="typeH2">{Number(sitter.hourlyRate).toFixed(2)} € / hour</p>
               <Button variant="primary" className="btnWide" type="button">
-                Broneeri kohe
+                Book now
               </Button>
               <Button variant="outline" className="btnWide" type="button">
-                Saada sõnum
+                Send message
               </Button>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <div className="profileColumns">
-          <div className="profileMain">
-            <section className="cardSurface blockPad">
-              <h2 className="typeH2">Minust</h2>
-              <p className="typeBody">{sitter.bio || '—'}</p>
-            </section>
-            <section className="cardSurface blockPad">
-              <h2 className="typeH2">Loomad, keda hooldan</h2>
-              <div className="tagRow">
-                {(sitter.animalTypes || []).map((t) => (
-                  <span key={t} className="tag">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </section>
-            <section className="cardSurface blockPad">
-              <h2 className="typeH2">Kodu</h2>
-              <ul className="typeBody listPlain">
-                <li>{sitter.hasChildren ? '✓' : '✗'} Lapsed kodus</li>
-                <li>{sitter.hasAnimals ? '✓' : '✗'} Teised lemmikloomad kodus</li>
-                <li>✓ Saadaval nädalavahetustel (demo)</li>
-              </ul>
-            </section>
-          </div>
+      <div className="public-profile-page-grid">
+        <div className="public-profile-page-primary">
+          <section className="public-profile-section">
+            <h2 className="public-profile-section-title">About</h2>
+            <p className="typeBody">{sitter.bio || '—'}</p>
+          </section>
 
-          <aside className="profileAside">
-            <section className="cardSurface blockPad">
-              <h2 className="typeH3">Broneeri: {sitter.name.split(' ')[0]}</h2>
+          <section className="public-profile-section">
+            <h2 className="public-profile-section-title">Animals I care for</h2>
+            <div className="tagRow">
+              {(sitter.animalTypes || []).map((t) => (
+                <span key={`care-${t}`} className="tag">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          <section className="public-profile-section">
+            <h2 className="public-profile-section-title">Home details</h2>
+            <ul className="typeBody listPlain">
+              <li>{sitter.hasChildren ? '✓' : '✗'} Has children at home</li>
+              <li>{sitter.hasAnimals ? '✓' : '✗'} Has other pets at home</li>
+              <li>✓ Available weekends and holidays (demo)</li>
+            </ul>
+          </section>
+        </div>
+
+        <aside className="public-profile-rail" aria-label="Booking sidebar">
+          <div className="public-profile-rail-inner">
+            <section className="public-profile-rail-card">
+              <h2 className="typeH3 public-profile-rail-title">Book {sitter.name.split(' ')[0]}</h2>
               {toast ? <div className="formError">{toast}</div> : null}
-              <Field label="Kuu">
+              <Field label="Month">
                 <input
                   className="input"
                   type="month"
@@ -200,10 +204,10 @@ export default function SitterProfilePage() {
                 disabledSet={disabledSet}
                 onRangeChange={setRange}
                 onBlockedAttempt={() =>
-                  setToast('See päev pole saadaval või on ajutiselt lukus.')
+                  setToast('This day is busy or temporarily locked. Please pick another date.')
                 }
               />
-              <Field label="Sinu lemmik">
+              <Field label="Your pet">
                 <select className="input" value={petId} onChange={(e) => setPetId(Number(e.target.value))}>
                   {pets.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -213,7 +217,7 @@ export default function SitterProfilePage() {
                 </select>
               </Field>
               <p className="typeBody">
-                {days ? `${days} päeva × ${Number(sitter.hourlyRate).toFixed(2)} € = ${total.toFixed(2)} €` : '—'}
+                {days ? `${days} days × ${Number(sitter.hourlyRate).toFixed(2)} € = ${total.toFixed(2)} €` : '—'}
               </p>
               <Button
                 variant="primary"
@@ -225,33 +229,34 @@ export default function SitterProfilePage() {
                   addConfirmedBlock(sitter.id, range.start, range.end)
                   releaseHold(sitter.id, tabSessionId)
                   setRange({ start: null, end: null })
-                  setToast('Broneeringu päring saadetud (demo). Kuupäevad on nüüd teistele lukus.')
+                  setToast('Booking request sent (demo). These dates are now locked for others.')
                   setHoldTick((x) => x + 1)
                 }}
               >
-                Esita broneering
+                Request booking
               </Button>
             </section>
 
-            <section className="cardSurface blockPad">
-              <h2 className="typeH3">Saadavus</h2>
+            <section className="public-profile-rail-card">
+              <h2 className="typeH3 public-profile-rail-title">Availability</h2>
               <p className="typeCaption legendRow">
-                <span className="swatch swatchFree" /> Saadaval{' '}
-                <span className="swatch swatchBusy" /> Hõivatud / pole valitav
+                <span className="swatch swatchFree" /> Available{' '}
+                <span className="swatch swatchBusy" /> Busy / not selectable
               </p>
             </section>
 
-            <section className="cardSurface blockPad">
-              <h2 className="typeH3">Asukoht</h2>
+            <section className="public-profile-rail-card">
+              <h2 className="typeH3 public-profile-rail-title">Location</h2>
               <p className="typeBodySmall textMuted">
-                Ligikaudne asukoht — täpne aadress jagatakse pärast broneeringut.
+                Approximate location — exact address is shared after booking.
               </p>
               <div className="mapFrame">
-                <iframe title="Kaart" src={mapUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                <iframe title="Map" src={mapUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
               </div>
             </section>
-          </aside>
-        </div>
-      </main>
+          </div>
+        </aside>
+      </div>
+    </main>
   )
 }
