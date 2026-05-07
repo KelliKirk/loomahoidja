@@ -2269,16 +2269,18 @@ button:hover {
 }
 
 .calendar-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
   align-items: center;
-  color: #34344A;
-  font-weight: 700;
+  column-gap: 12px;
+  color: #3d2c3b;
+  font-weight: 800;
   font-size: 0.9rem;
 }
 
 .calendar-month {
-  font-weight: 700;
+  text-align: center;
+  font-weight: 800;
 }
 
 .calendar-weekdays {
@@ -2287,8 +2289,8 @@ button:hover {
   gap: 2px;
   text-align: center;
   font-size: 0.75rem;
-  color: #6B6B7D;
-  font-weight: 700;
+  color: rgba(61, 44, 59, 0.72);
+  font-weight: 800;
   margin-bottom: 4px;
 }
 
@@ -2305,9 +2307,11 @@ button:hover {
   place-items: center;
   border-radius: 6px;
   font-size: 0.8rem;
-  color: #6B6B7D;
+  color: #3d2c3b;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 800;
+  background: #fff;
+  border: 2px solid rgba(61, 44, 59, 0.16);
 }
 
 .day.empty {
@@ -2315,19 +2319,20 @@ button:hover {
 }
 
 .day.available {
-  background: #C5D9D7;
-  color: #6B6B7D;
+  background: #fff;
+  border-color: rgba(61, 44, 59, 0.16);
 }
 
 .day.booked {
-  background: #6B4765;
-  color: #fff;
+  background: #97b1a6;
+  border-color: rgba(46, 39, 53, 0.14);
+  color: #2a2438;
 }
 
 .day.today {
-  background: #ebbab9;
-  color: #3d2c3b;
-  font-weight: 800;
+  background: #fff;
+  border-color: rgba(61, 44, 59, 0.65);
+  box-shadow: inset 0 0 0 1px rgba(61, 44, 59, 0.2);
 }
 
 .calendar-legend {
@@ -2346,21 +2351,22 @@ button:hover {
 }
 
 .cal-nav-btn {
-  background: #f2eef5;
-  border: none;
-  width: 32px;
-  height: 32px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(61, 44, 59, 0.18);
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #594157;
+  color: #3d2c3b;
 }
 
 .cal-nav-btn:hover {
-  background: #EBBAB9;
+  background: rgba(61, 44, 59, 0.1);
+  border-color: rgba(61, 44, 59, 0.3);
 }
 
 .cal-day.today {
@@ -2381,15 +2387,17 @@ button:hover {
 }
 
 .legend-box.available {
-  background: #C5D9D7;
+  background: #fff;
+  border: 2px solid rgba(61, 44, 59, 0.16);
 }
 
 .legend-box.booked {
-  background: #6B4765;
+  background: #97b1a6;
 }
 
 .legend-box.today {
-  background: #ebbab9;
+  background: #fff;
+  border: 2px solid rgba(61, 44, 59, 0.65);
 }
 
 .owner-earnings-stack {
