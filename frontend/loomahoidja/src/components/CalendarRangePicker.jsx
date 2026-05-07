@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { eachDayInRange } from '../lib/dateRange'
 
-const WEEK = ['E', 'T', 'K', 'N', 'R', 'L', 'P']
+const WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 function pad2(n) {
   return String(n).padStart(2, '0')
@@ -113,8 +113,7 @@ export default function CalendarRangePicker({
         })}
       </div>
       <div className="calHint">
-        Puudulikud päevad on hõivatud või pole saadaval. Teise kasutaja ajutine broneering lukustab kuupäevad mõneks
-        minutiks.
+        Busy days are not selectable. Another user's temporary hold can lock dates for a few minutes.
       </div>
     </div>
   )

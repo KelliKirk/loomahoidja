@@ -143,7 +143,7 @@ export default function SitterProfilePage() {
     }
     const res = acquireHold(sitter.id, range.start, range.end, tabSessionId)
     if (!res.ok) {
-      setToast('Need kuupäevad on hetkel teise broneeringu poolt reserveeritud. Palun vali teised ajad.')
+      setToast('These dates are temporarily reserved by another booking. Please choose different dates.')
       setRange({ start: null, end: null })
     } else {
       setToast('')
