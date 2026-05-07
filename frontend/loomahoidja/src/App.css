@@ -2296,7 +2296,7 @@ button:hover {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .day {
@@ -2325,9 +2325,9 @@ button:hover {
 }
 
 .day.today {
-  background: #6B4765;
-  color: #fff;
-  font-weight: 700;
+  background: #ebbab9;
+  color: #3d2c3b;
+  font-weight: 800;
 }
 
 .calendar-legend {
@@ -2389,7 +2389,18 @@ button:hover {
 }
 
 .legend-box.today {
-  background: #6B4765;
+  background: #ebbab9;
+}
+
+.owner-earnings-stack {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.owner-stat-card.owner-stat-card--compact {
+  min-height: 0;
+  padding: 18px 18px 16px;
 }
 
 .location-map {

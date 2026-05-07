@@ -211,10 +211,16 @@ export default function SitterDashboardPage() {
 
             <section className="owner-card">
               <h2>Availability calendar</h2>
-              <div>
-                <button className="cal-nav-btn" onClick={handlePrevMonth}>‹</button>
-                <span>{MONTH_NAMES[calMonth]} {calYear}</span>
-                <button className="cal-nav-btn" onClick={handleNextMonth}>›</button>
+              <div className="calendar-header">
+                <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
+                  ‹
+                </button>
+                <span className="calendar-month">
+                  {MONTH_NAMES[calMonth]} {calYear}
+                </span>
+                <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
+                  ›
+                </button>
               </div>
               <div className="calendar-weekdays">
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
@@ -230,7 +236,7 @@ export default function SitterDashboardPage() {
                     && today.getMonth() === calMonth
                     && today.getDate() === day
                   return (
-                    <div key={day} className={`day${isToday ? ' today' : ''}`}>
+                    <div key={day} className={`day available${isToday ? ' today' : ''}`}>
                       {day}
                     </div>
                   )
@@ -249,19 +255,18 @@ export default function SitterDashboardPage() {
               </div>
             </section>
 
-            <section className="owner-card">
-              <h2>Earnings</h2>
-              <div>
-                <div className="owner-stat-card">
-                  <span className="owner-stat-label">This month</span>
-                  <strong>127 €</strong>
-                </div>
-                <div className="owner-stat-card">
-                  <span className="owner-stat-label">Total earned</span>
-                  <strong>843 €</strong>
-                </div>
-              </div>
-            </section>
+            <div className="owner-earnings-stack" aria-label="Earnings">
+              <article className="owner-stat-card owner-stat-card--compact">
+                <span className="owner-stat-label">This month</span>
+                <strong>127 €</strong>
+                <small>earned</small>
+              </article>
+              <article className="owner-stat-card owner-stat-card--compact">
+                <span className="owner-stat-label">Total earned</span>
+                <strong>843 €</strong>
+                <small>all time</small>
+              </article>
+            </div>
 
           </div>
         </div>
