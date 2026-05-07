@@ -2330,9 +2330,9 @@ button:hover {
 }
 
 .day.today {
-  background: #fff;
-  border-color: rgba(61, 44, 59, 0.65);
-  box-shadow: inset 0 0 0 1px rgba(61, 44, 59, 0.2);
+  background: #3d2c3b;
+  border-color: rgba(61, 44, 59, 0.25);
+  color: #fff;
 }
 
 .calendar-legend {
@@ -2396,8 +2396,7 @@ button:hover {
 }
 
 .legend-box.today {
-  background: #fff;
-  border: 2px solid rgba(61, 44, 59, 0.65);
+  background: #3d2c3b;
 }
 
 .owner-earnings-stack {

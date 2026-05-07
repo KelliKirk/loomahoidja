@@ -255,7 +255,9 @@ export default function SitterDashboardPage() {
               </div>
             </section>
 
-            <div className="owner-earnings-stack" aria-label="Earnings">
+            <section className="owner-card owner-earnings-card" aria-label="Earnings">
+              <h2>Earnings</h2>
+              <div className="owner-earnings-stack">
               <article className="owner-stat-card owner-stat-card--compact">
                 <span className="owner-stat-label">This month</span>
                 <strong>127 €</strong>
@@ -266,7 +268,8 @@ export default function SitterDashboardPage() {
                 <strong>843 €</strong>
                 <small>all time</small>
               </article>
-            </div>
+              </div>
+            </section>
 
           </div>
         </div>
