@@ -485,7 +485,7 @@ export default function SitterDashboardPage() {
           </div>
         ) : (
           <div className="owner-content">
-          {section !== 'messages' && (
+          {(section === 'overview' || section === 'bookings') && (
             <div className="owner-welcome">
               <h1>Welcome back, {firstName}</h1>
               <p>
