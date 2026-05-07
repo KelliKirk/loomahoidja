@@ -303,8 +303,8 @@ export default function SitterProfilePage() {
           </div>
         </div>
 
-        <aside className="owner-profile-rail" aria-label="Booking sidebar">
-          <div className="owner-profile-rail-inner">
+        <aside className="owner-profile-rail owner-profile-rail--public" aria-label="Booking sidebar">
+          <div className="owner-profile-rail-inner owner-profile-rail-inner--public">
             <section className="owner-profile-rail-card">
               <h2 className="typeH3 owner-profile-rail-card-title">Book {sitter.name.split(' ')[0]}</h2>
               {toast ? <div className="formError">{toast}</div> : null}

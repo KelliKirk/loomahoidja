@@ -3611,6 +3611,14 @@ button:hover {
   box-sizing: border-box;
 }
 
+/* Public sitter profile: let the page scroll naturally (no inner scroll trap) */
+.owner-profile-rail-inner--public {
+  position: relative;
+  top: auto;
+  max-height: none;
+  overflow: visible;
+}
+
 .owner-profile-rail-card {
   background: #fff;
   border-radius: 16px;
@@ -4710,7 +4718,7 @@ button:hover {
 
 .calWeekRow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   margin-bottom: 6px;
 }
@@ -4724,12 +4732,14 @@ button:hover {
 
 .calGrid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 
 .calCell {
   min-height: 40px;
+  min-width: 0;
+  padding: 0;
   border-radius: 10px;
   border: 2px solid rgba(61, 44, 59, 0.16);
   background: #fff;
