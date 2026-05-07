@@ -1,6 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faCalendarCheck,
+  faCalendarDays,
+  faChartLine,
+  faCoins,
+  faEnvelope,
+  faUserGear,
+} from '@fortawesome/free-solid-svg-icons'
+import logoMarkUrl from '../assets/logo.png?url'
 import Button from '../components/Button'
+import { initialsFromFullName } from '../lib/userDisplay'
 
 const INITIAL_REQUESTS = [
   { owner: 'Peeter P.', pet: 'Rex', dates: '14.04–17.04', price: '25.50 €' },
@@ -21,8 +33,10 @@ function daysInMonth(year, month) {
 }
 
 export default function SitterDashboardPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const firstName = user?.fullName?.split(' ')[0] || 'Sitter'
+  const initials = useMemo(() => initialsFromFullName(user?.fullName), [user?.fullName])
 
   const [bookingRequests, setBookingRequests] = useState(INITIAL_REQUESTS)
   const today = new Date()
@@ -41,24 +55,84 @@ export default function SitterDashboardPage() {
   const handleDecline = (index) => setBookingRequests(r => r.filter((_, i) => i !== index))
 
   return (
-    <div className="owner-dashboard">
+    <section className="owner-dashboard owner-dashboard--with-topbar">
+      <header className="owner-topbar">
+        <div className="owner-topbar-start">
+          <button
+            type="button"
+            className="owner-topbar-home"
+            onClick={() => navigate('/')}
+            aria-label="Loomahoidja home"
+          >
+            <img src={logoMarkUrl} className="owner-brand-logo" alt="" width={44} height={36} decoding="async" />
+            <span className="owner-topbar-wordmark">Loomahoidja</span>
+          </button>
+          <div className="owner-topbar-brand">
+            <button type="button" onClick={() => navigate('/')}>
+              Find a sitter
+            </button>
+            <button type="button" className="active">
+              Dashboard
+            </button>
+            <button type="button" className="message-tab" onClick={() => { /* placeholder */ }}>
+              Messages
+              <span aria-label="3 unread messages">3</span>
+            </button>
+          </div>
+        </div>
+        <div className="owner-topbar-actions">
+          <div className="owner-topbar-avatar" title={user?.fullName || user?.email || ''} aria-hidden="true">
+            {initials}
+          </div>
+          <Button
+            variant="outline"
+            className="btnSm owner-topbar-logout"
+            type="button"
+            onClick={() => {
+              logout()
+              navigate('/')
+            }}
+          >
+            Log out
+          </Button>
+        </div>
+      </header>
+
       <aside className="owner-sidebar">
         <div className="owner-profile">
           <strong>{user?.fullName || 'Sitter'}</strong>
           <span>Sitter</span>
         </div>
-        <nav className="owner-side-nav">
-          <button className="active" type="button"><span>▥</span>Overview</button>
-          <button type="button"><span>▣</span>Bookings</button>
-          <button type="button"><span>🗓</span>Calendar</button>
-          <button type="button"><span>💬</span>Messages</button>
-          <button type="button"><span>⚙</span>Profile settings</button>
-          <button type="button"><span>💰</span>Earnings</button>
+        <nav className="owner-side-nav" aria-label="Sitter dashboard">
+          <button className="active" type="button">
+            <FontAwesomeIcon icon={faChartLine} className="owner-nav-icon" fixedWidth />
+            Overview
+          </button>
+          <button type="button">
+            <FontAwesomeIcon icon={faCalendarCheck} className="owner-nav-icon" fixedWidth />
+            Bookings
+          </button>
+          <button type="button">
+            <FontAwesomeIcon icon={faCalendarDays} className="owner-nav-icon" fixedWidth />
+            Calendar
+          </button>
+          <button type="button">
+            <FontAwesomeIcon icon={faEnvelope} className="owner-nav-icon" fixedWidth />
+            Messages
+          </button>
+          <button type="button">
+            <FontAwesomeIcon icon={faUserGear} className="owner-nav-icon" fixedWidth />
+            Profile settings
+          </button>
+          <button type="button">
+            <FontAwesomeIcon icon={faCoins} className="owner-nav-icon" fixedWidth />
+            Earnings
+          </button>
         </nav>
       </aside>
 
       <div className="owner-workspace">
-        <main className="owner-content">
+        <div className="owner-content">
           <div className="owner-welcome">
             <h1>Welcome back, {firstName}</h1>
             <p>You have {bookingRequests.length} new booking {bookingRequests.length === 1 ? 'request' : 'requests'}</p>
@@ -66,25 +140,33 @@ export default function SitterDashboardPage() {
 
           <div className="owner-stats-grid">
             <div className="owner-stat-card highlighted">
-              <span className="owner-stat-icon">📋</span>
+              <span className="owner-stat-icon calendar-icon" aria-hidden="true">
+                <FontAwesomeIcon icon={faCalendarCheck} />
+              </span>
               <span className="owner-stat-label">New requests</span>
               <strong>{bookingRequests.length}</strong>
               <small>awaiting response</small>
             </div>
             <div className="owner-stat-card">
-              <span className="owner-stat-icon">📅</span>
+              <span className="owner-stat-icon calendar-icon" aria-hidden="true">
+                <FontAwesomeIcon icon={faCalendarDays} />
+              </span>
               <span className="owner-stat-label">Active bookings</span>
               <strong>2</strong>
               <small>this week</small>
             </div>
             <div className="owner-stat-card">
-              <span className="owner-stat-icon">💰</span>
+              <span className="owner-stat-icon outline" aria-hidden="true">
+                <FontAwesomeIcon icon={faCoins} />
+              </span>
               <span className="owner-stat-label">This month</span>
               <strong>127 €</strong>
               <small>earned</small>
             </div>
             <div className="owner-stat-card">
-              <span className="owner-stat-icon">⭐</span>
+              <span className="owner-stat-icon success" aria-hidden="true">
+                <FontAwesomeIcon icon={faChartLine} />
+              </span>
               <span className="owner-stat-label">Your rating</span>
               <strong>4.9</strong>
               <small>28 reviews</small>
@@ -93,7 +175,7 @@ export default function SitterDashboardPage() {
 
           <section className="owner-bookings-section">
             <h2>Booking requests</h2>
-            <div className="owner-bookings-table">
+            <div className="owner-bookings-table sitter-requests-table">
               <div className="owner-table-row owner-table-head">
                 <span>Owner</span>
                 <span>Pet</span>
@@ -102,8 +184,8 @@ export default function SitterDashboardPage() {
                 <span></span>
               </div>
               {bookingRequests.length === 0 && (
-                <div>
-                  No pending requests 🎉
+                <div className="owner-table-row">
+                  <span style={{ gridColumn: '1 / -1', padding: '10px 0' }}>No pending requests 🎉</span>
                 </div>
               )}
               {bookingRequests.map((r, index) => (
@@ -112,9 +194,13 @@ export default function SitterDashboardPage() {
                   <span>{r.pet}</span>
                   <span>{r.dates}</span>
                   <span>{r.price}</span>
-                  <div className="tableActions">
-                    <button className="btn-action accept" onClick={() => handleAccept(index)}>Accept</button>
-                    <button className="btn-action decline" onClick={() => handleDecline(index)}>Decline</button>
+                  <div className="owner-table-actions" aria-label="Request actions">
+                    <button type="button" className="btn-accept" onClick={() => handleAccept(index)}>
+                      Accept
+                    </button>
+                    <button type="button" className="btn-decline" onClick={() => handleDecline(index)}>
+                      Decline
+                    </button>
                   </div>
                 </div>
               ))}
@@ -178,8 +264,8 @@ export default function SitterDashboardPage() {
             </section>
 
           </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

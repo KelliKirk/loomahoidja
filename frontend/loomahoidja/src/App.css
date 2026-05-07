@@ -2966,6 +2966,34 @@ button:hover {
   box-shadow: 0 3px 13px rgba(61, 41, 59, 0.19);
 }
 
+.sitter-requests-table .owner-table-row {
+  grid-template-columns: 1fr 1fr 1.2fr 0.85fr 160px;
+}
+
+.owner-table-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.owner-table-actions button {
+  width: auto;
+  min-width: 72px;
+}
+
+.owner-table-actions .btn-accept {
+  background: #5b7d6f;
+}
+
+.owner-table-actions .btn-decline {
+  background: #8d6570;
+}
+
+.owner-table-actions .btn-accept:hover:not(:disabled),
+.owner-table-actions .btn-decline:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
 .owner-table-row {
   min-height: 34px;
   display: grid;
