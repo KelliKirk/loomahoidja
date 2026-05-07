@@ -14,6 +14,7 @@ import logoMarkUrl from '../assets/logo.png?url'
 import Button from '../components/Button'
 import Avatar from '../components/Avatar'
 import { apiForm, apiJson } from '../api'
+import { coordsForCity, osmEmbedUrl } from '../lib/geo'
 import { initialsFromFullName } from '../lib/userDisplay'
 
 const INITIAL_REQUESTS = [
@@ -56,6 +57,10 @@ export default function SitterDashboardPage() {
 
   const apiOrigin = useMemo(() => String(apiBaseUrl || '').replace(/\/?api\/?$/i, ''), [apiBaseUrl])
   const profilePhotoUrl = myProfile?.photo ? `${apiOrigin}/uploads/profiles/${myProfile.photo}` : null
+  const profileMapUrl = useMemo(() => {
+    const { lat, lng } = coordsForCity(sitterCity?.trim() || user?.city)
+    return osmEmbedUrl(lat, lng)
+  }, [sitterCity, user?.city])
 
   useEffect(() => {
     let cancelled = false
@@ -234,7 +239,252 @@ export default function SitterDashboardPage() {
       </aside>
 
       <div className="owner-workspace">
-        <div className="owner-content">
+        {section === 'profile' ? (
+          <div className="owner-profile-page-grid">
+            <div className="owner-profile-page-primary">
+              <div className="owner-profile-hero-strip">
+                <div className="owner-profile-hero-strip-inner">
+                  <div className="owner-profile-hero-layout">
+                    <div className="owner-profile-avatar-block">
+                      <button
+                        type="button"
+                        className="owner-profile-avatar-hit"
+                        onClick={() => photoInputRef.current?.click()}
+                        disabled={photoUploading}
+                        aria-label={profilePhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
+                      >
+                        <Avatar src={profilePhotoUrl} name={user?.fullName || 'Sitter'} size={96} />
+                      </button>
+                      <input
+                        ref={photoInputRef}
+                        type="file"
+                        className="owner-photo-file-input"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handlePhotoSelected}
+                      />
+                      <p className="typeCaption textMuted owner-profile-upload-hint">
+                        {photoUploading
+                          ? 'Uploading…'
+                          : profilePhotoUrl
+                            ? 'Click photo to replace'
+                            : 'Click to add a photo'}
+                      </p>
+                    </div>
+
+                    <div className="owner-profile-hero-text">
+                      <h1 className="typeH1 owner-profile-hero-title">{user?.fullName || 'Sitter profile'}</h1>
+                      <p className="typeBodySmall owner-profile-hero-sub">
+                        {sitterCity?.trim() ? `${sitterCity.trim()} · ` : ''}
+                        Profile settings
+                      </p>
+                      <div className="tagRow">
+                        {Array.from(sitterTypes).length === 0 ? (
+                          <span className="tag">No pet types yet</span>
+                        ) : (
+                          Array.from(sitterTypes).map((t) => (
+                            <span key={t} className="tag">
+                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                      <p className="typeBody owner-profile-hero-meta">
+                        {myProfile
+                          ? 'Edit your public sitter profile and keep it up to date.'
+                          : 'Create your sitter profile to start receiving booking requests.'}
+                      </p>
+                    </div>
+
+                    <div className="owner-profile-hero-aside">
+                      <Button variant="primary" className="btnWide" type="button" onClick={() => setSection('bookings')}>
+                        Booking requests
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="btnWide owner-profile-hero-outline-btn"
+                        type="button"
+                        onClick={() => navigate('/')}
+                      >
+                        Back to home
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="owner-profile-main-flow">
+                <section className="owner-profile-section">
+                  <h2 className="owner-profile-section-title">Edit sitter profile</h2>
+                  {profileError ? <div className="formError owner-profile-save-error">{profileError}</div> : null}
+                  {profileLoading ? <p className="typeBodySmall textMuted">Loading profile…</p> : null}
+
+                  <form
+                    className="owner-profile-edit-form"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      saveSitterProfile()
+                    }}
+                  >
+                    <div className="form-group">
+                      <label>Hourly rate (€)</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={sitterHourlyRate}
+                        onChange={(e) => setSitterHourlyRate(e.target.value)}
+                        placeholder="8.5"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>City</label>
+                      <input
+                        className="input"
+                        value={sitterCity}
+                        onChange={(e) => setSitterCity(e.target.value)}
+                        placeholder="e.g. Tartu"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Bio</label>
+                      <textarea
+                        value={sitterBio}
+                        onChange={(e) => setSitterBio(e.target.value)}
+                        placeholder="Tell owners about your experience…"
+                        rows="5"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Animals you care for</label>
+                      <div className="pillGrid">
+                        {['dog', 'cat', 'bird', 'rabbit', 'rodent', 'fish'].map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            className={`filterPill ${sitterTypes.has(t) ? 'on' : ''}`}
+                            onClick={() => toggleType(t)}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="checkRow">
+                        <input
+                          type="checkbox"
+                          checked={sitterHasChildren}
+                          onChange={(e) => setSitterHasChildren(e.target.checked)}
+                        />
+                        Has children at home
+                      </label>
+                      <label className="checkRow">
+                        <input
+                          type="checkbox"
+                          checked={sitterHasAnimals}
+                          onChange={(e) => setSitterHasAnimals(e.target.checked)}
+                        />
+                        Has other pets at home
+                      </label>
+                    </div>
+
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      className="owner-profile-save-btn"
+                      disabled={profileSaving || profileLoading}
+                    >
+                      {profileSaving ? 'Saving…' : 'Save profile'}
+                    </Button>
+                  </form>
+                </section>
+              </div>
+            </div>
+
+            <aside className="owner-profile-rail" aria-label="Profile sidebar">
+              <div className="owner-profile-rail-inner">
+                <section className="owner-profile-rail-card">
+                  <h2 className="owner-profile-rail-card-title">Booking requests</h2>
+                  <p className="typeBodySmall owner-profile-rail-muted">
+                    {bookingRequests.length
+                      ? `You have ${bookingRequests.length} pending request${bookingRequests.length === 1 ? '' : 's'}.`
+                      : 'No pending requests.'}
+                  </p>
+                  <Button variant="outline" className="btnWide" type="button" onClick={() => setSection('bookings')}>
+                    Open requests
+                  </Button>
+                </section>
+
+                <section className="owner-profile-rail-card">
+                  <h2 className="owner-profile-rail-card-title">Calendar</h2>
+                  <div className="calendar-header" style={{ marginBottom: 6 }}>
+                    <button type="button" className="cal-nav-btn" onClick={handlePrevMonth} aria-label="Previous month">
+                      ‹
+                    </button>
+                    <span className="calendar-month">
+                      {MONTH_NAMES[calMonth]} {calYear}
+                    </span>
+                    <button type="button" className="cal-nav-btn" onClick={handleNextMonth} aria-label="Next month">
+                      ›
+                    </button>
+                  </div>
+                  <div className="calendar-weekdays">
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                      <span key={i}>{d}</span>
+                    ))}
+                  </div>
+                  <div className="calendar-grid">
+                    {Array(getMonthStartOffset(calYear, calMonth)).fill(null).map((_, i) => (
+                      <div key={`blank-${i}`} className="day empty" />
+                    ))}
+                    {Array.from({ length: daysInMonth(calYear, calMonth) }, (_, i) => i + 1).map((day) => {
+                      const isToday =
+                        today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === day
+                      return (
+                        <div key={day} className={`day available${isToday ? ' today' : ''}`}>
+                          {day}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="calendar-legend">
+                    <div className="legend-item">
+                      <div className="legend-box available" />
+                      <span>Available</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-box booked" />
+                      <span>Busy</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-box today" />
+                      <span>Today</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="owner-profile-rail-card">
+                  <h2 className="owner-profile-rail-card-title">Location</h2>
+                  <p className="typeBodySmall owner-profile-rail-muted">
+                    Approximate area — exact address is shared with owners only when you choose.
+                  </p>
+                  <div className="mapFrame owner-profile-rail-map">
+                    <iframe
+                      title="Approximate location"
+                      src={profileMapUrl}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                </section>
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <div className="owner-content">
           {section !== 'messages' && (
             <div className="owner-welcome">
               <h1>Welcome back, {firstName}</h1>
@@ -393,188 +643,8 @@ export default function SitterDashboardPage() {
               </div>
             </section>
           ) : null}
-
-          {section === 'profile' ? (
-            <div className="owner-profile-page-grid">
-              <div className="owner-profile-page-primary">
-                <div className="owner-profile-hero-strip">
-                  <div className="owner-profile-hero-strip-inner">
-                    <div className="owner-profile-hero-layout">
-                      <div className="owner-profile-avatar-block">
-                        <button
-                          type="button"
-                          className="owner-profile-avatar-hit"
-                          onClick={() => photoInputRef.current?.click()}
-                          disabled={photoUploading}
-                          aria-label={profilePhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
-                        >
-                          <Avatar src={profilePhotoUrl} name={user?.fullName || 'Sitter'} size={96} />
-                        </button>
-                        <input
-                          ref={photoInputRef}
-                          type="file"
-                          className="owner-photo-file-input"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
-                          onChange={handlePhotoSelected}
-                        />
-                        <p className="typeCaption textMuted owner-profile-upload-hint">
-                          {photoUploading
-                            ? 'Uploading…'
-                            : profilePhotoUrl
-                              ? 'Click photo to replace'
-                              : 'Click to add a photo'}
-                        </p>
-                      </div>
-
-                      <div className="owner-profile-hero-text">
-                        <h1 className="typeH1 owner-profile-hero-title">{user?.fullName || 'Sitter profile'}</h1>
-                        <p className="typeBodySmall owner-profile-hero-sub">
-                          {sitterCity?.trim() ? `${sitterCity.trim()} · ` : ''}
-                          Profile settings
-                        </p>
-                        <div className="tagRow">
-                          {Array.from(sitterTypes).length === 0 ? (
-                            <span className="tag">No pet types yet</span>
-                          ) : (
-                            Array.from(sitterTypes).map((t) => (
-                              <span key={t} className="tag">
-                                {t.charAt(0).toUpperCase() + t.slice(1)}
-                              </span>
-                            ))
-                          )}
-                        </div>
-                        <p className="typeBody owner-profile-hero-meta">
-                          {myProfile ? 'This is your public sitter profile preview and settings.' : 'Create your sitter profile below.'}
-                        </p>
-                      </div>
-
-                      <div className="owner-profile-hero-aside">
-                        <Button variant="primary" className="btnWide" type="button" onClick={() => setSection('messages')}>
-                          Messages
-                        </Button>
-                        <Button variant="outline" className="btnWide owner-profile-hero-outline-btn" type="button" onClick={() => navigate('/')}>
-                          Back to home
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="owner-profile-main-flow">
-                  <section className="owner-profile-section">
-                    <h2 className="owner-profile-section-title">Edit sitter profile</h2>
-                    {profileError ? <div className="formError owner-profile-save-error">{profileError}</div> : null}
-                    {profileLoading ? <p className="typeBodySmall textMuted">Loading profile…</p> : null}
-
-                    <form
-                      className="owner-profile-edit-form"
-                      onSubmit={(e) => {
-                        e.preventDefault()
-                        saveSitterProfile()
-                      }}
-                    >
-                      <div className="form-group">
-                        <label>Hourly rate (€)</label>
-                        <input
-                          className="input"
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          value={sitterHourlyRate}
-                          onChange={(e) => setSitterHourlyRate(e.target.value)}
-                          placeholder="8.5"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>City</label>
-                        <input
-                          className="input"
-                          value={sitterCity}
-                          onChange={(e) => setSitterCity(e.target.value)}
-                          placeholder="e.g. Tartu"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Bio</label>
-                        <textarea
-                          value={sitterBio}
-                          onChange={(e) => setSitterBio(e.target.value)}
-                          placeholder="Tell owners about your experience…"
-                          rows="5"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Animals you care for</label>
-                        <div className="pillGrid">
-                          {['dog', 'cat', 'bird', 'rabbit', 'rodent', 'fish'].map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              className={`filterPill ${sitterTypes.has(t) ? 'on' : ''}`}
-                              onClick={() => toggleType(t)}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="checkRow">
-                          <input
-                            type="checkbox"
-                            checked={sitterHasChildren}
-                            onChange={(e) => setSitterHasChildren(e.target.checked)}
-                          />
-                          Has children at home
-                        </label>
-                        <label className="checkRow">
-                          <input
-                            type="checkbox"
-                            checked={sitterHasAnimals}
-                            onChange={(e) => setSitterHasAnimals(e.target.checked)}
-                          />
-                          Has other pets at home
-                        </label>
-                      </div>
-
-                      <Button variant="primary" type="submit" className="owner-profile-save-btn" disabled={profileSaving || profileLoading}>
-                        {profileSaving ? 'Saving…' : 'Save profile'}
-                      </Button>
-                    </form>
-                  </section>
-                </div>
-              </div>
-
-              <aside className="owner-profile-rail" aria-label="Profile preview">
-                <div className="owner-profile-rail-inner">
-                  <section className="owner-profile-rail-card">
-                    <h2 className="owner-profile-rail-card-title">Public profile</h2>
-                    <dl className="owner-dl owner-dl--rail">
-                      <dt>Name</dt>
-                      <dd>{user?.fullName || '—'}</dd>
-                      <dt>City</dt>
-                      <dd>{sitterCity?.trim() ? sitterCity.trim() : '—'}</dd>
-                      <dt>Rate</dt>
-                      <dd>{sitterHourlyRate?.trim() ? `${sitterHourlyRate.trim()} € / hour` : '—'}</dd>
-                    </dl>
-                    {myProfile?.id ? (
-                      <Button
-                        variant="outline"
-                        className="btnWide"
-                        type="button"
-                        onClick={() => navigate(`/sitter/${myProfile.id}`)}
-                      >
-                        View public page
-                      </Button>
-                    ) : null}
-                  </section>
-                </div>
-              </aside>
-            </div>
-          ) : null}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   )
