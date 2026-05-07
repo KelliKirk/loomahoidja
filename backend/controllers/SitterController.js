@@ -34,7 +34,19 @@ exports.getOne = async (req, res, next) => {
 // POST /api/sitters/profile
 exports.upsertProfile = async (req, res, next) => {
   try {
-    const { userId, hourlyRate, bio, hasAnimals, hasChildren, city, animalTypes } = req.body;
+    const { userId, hourlyRate, bio, hasAnimals, hasChildren, city } = req.body;
+    let { animalTypes } = req.body;
+    if (typeof animalTypes === 'string') {
+      try {
+        const parsed = JSON.parse(animalTypes);
+        animalTypes = parsed;
+      } catch {
+        animalTypes = animalTypes
+          .split(',')
+          .map((x) => String(x).trim())
+          .filter(Boolean);
+      }
+    }
 
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });

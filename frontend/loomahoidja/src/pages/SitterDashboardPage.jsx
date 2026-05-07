@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -12,6 +12,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import logoMarkUrl from '../assets/logo.png?url'
 import Button from '../components/Button'
+import Avatar from '../components/Avatar'
+import { apiForm, apiJson } from '../api'
 import { initialsFromFullName } from '../lib/userDisplay'
 
 const INITIAL_REQUESTS = [
@@ -33,12 +35,106 @@ function daysInMonth(year, month) {
 }
 
 export default function SitterDashboardPage() {
-  const { user, logout } = useAuth()
+  const { user, token, apiBaseUrl, logout, setSession } = useAuth()
   const navigate = useNavigate()
   const firstName = user?.fullName?.split(' ')[0] || 'Sitter'
   const initials = useMemo(() => initialsFromFullName(user?.fullName), [user?.fullName])
   const [section, setSection] = useState('overview')
   const unreadCount = 0
+  const [myProfile, setMyProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [profileError, setProfileError] = useState('')
+  const [sitterHourlyRate, setSitterHourlyRate] = useState('')
+  const [sitterBio, setSitterBio] = useState('')
+  const [sitterCity, setSitterCity] = useState('')
+  const [sitterHasChildren, setSitterHasChildren] = useState(false)
+  const [sitterHasAnimals, setSitterHasAnimals] = useState(false)
+  const [sitterTypes, setSitterTypes] = useState(() => new Set(['dog', 'cat']))
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const photoInputRef = useRef(null)
+
+  const apiOrigin = useMemo(() => String(apiBaseUrl || '').replace(/\/?api\/?$/i, ''), [apiBaseUrl])
+  const profilePhotoUrl = myProfile?.photo ? `${apiOrigin}/uploads/profiles/${myProfile.photo}` : null
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim() || !user?.id) return
+      setProfileLoading(true)
+      setProfileError('')
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/sitters' })
+        const list = Array.isArray(data) ? data : data?.sitters || []
+        const mine = list.find((p) => Number(p.userId) === Number(user.id)) || null
+        if (cancelled) return
+        setMyProfile(mine)
+        setSitterHourlyRate(mine?.hourlyRate != null ? String(mine.hourlyRate) : '')
+        setSitterBio(mine?.bio || '')
+        setSitterCity(mine?.city || user.city || '')
+        setSitterHasChildren(Boolean(mine?.hasChildren))
+        setSitterHasAnimals(Boolean(mine?.hasAnimals))
+        const raw = (mine?.SitterAnimalTypes || []).map((t) => String(t.animalType || t).toLowerCase())
+        if (raw.length) setSitterTypes(new Set(raw))
+      } catch (e) {
+        if (!cancelled) setProfileError(e.message || 'Could not load sitter profile.')
+      } finally {
+        if (!cancelled) setProfileLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, user?.id, user?.city])
+
+  async function saveSitterProfile({ withPhotoFile = null } = {}) {
+    if (!token?.trim() || !user?.id) return
+    setProfileSaving(true)
+    setProfileError('')
+    try {
+      const fd = new FormData()
+      fd.append('userId', String(user.id))
+      fd.append('hourlyRate', sitterHourlyRate.trim() || '0')
+      fd.append('bio', sitterBio.trim())
+      fd.append('city', sitterCity.trim() || '')
+      fd.append('hasChildren', sitterHasChildren ? '1' : '0')
+      fd.append('hasAnimals', sitterHasAnimals ? '1' : '0')
+      fd.append('animalTypes', JSON.stringify(Array.from(sitterTypes)))
+      if (withPhotoFile) fd.append('photo', withPhotoFile)
+
+      const updated = await apiForm({ baseUrl: apiBaseUrl, path: '/sitters/profile', token, formData: fd })
+      setMyProfile(updated)
+      // keep Auth user city in sync if sitter edits city here
+      if (setSession && user) {
+        setSession(token, { ...user, city: sitterCity.trim() || null })
+      }
+    } catch (e) {
+      setProfileError(e.message || 'Could not save sitter profile.')
+    } finally {
+      setProfileSaving(false)
+    }
+  }
+
+  const handlePhotoSelected = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPhotoUploading(true)
+    try {
+      await saveSitterProfile({ withPhotoFile: file })
+    } finally {
+      setPhotoUploading(false)
+    }
+  }
+
+  function toggleType(t) {
+    setSitterTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(t)) next.delete(t)
+      else next.add(t)
+      return next
+    })
+  }
 
   const [bookingRequests, setBookingRequests] = useState(INITIAL_REQUESTS)
   const today = new Date()
@@ -294,6 +390,120 @@ export default function SitterDashboardPage() {
               <div className="owner-chat-header">
                 <h2>Messages</h2>
                 <p className="owner-chat-subtitle typeBodySmall textMuted">No messages yet.</p>
+              </div>
+            </section>
+          ) : null}
+
+          {section === 'profile' ? (
+            <section className="owner-card owner-chat-card">
+              <div className="owner-chat-header">
+                <h2>Profile settings</h2>
+                <p className="owner-chat-subtitle typeBodySmall textMuted">
+                  Update your sitter profile details and photo.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 16 }}>
+                <div>
+                  <button
+                    type="button"
+                    className="owner-profile-avatar-hit"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={photoUploading}
+                    aria-label={profilePhotoUrl ? 'Change profile photo' : 'Upload profile photo'}
+                  >
+                    <Avatar src={profilePhotoUrl} name={user?.fullName || 'Sitter'} size={96} />
+                  </button>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    className="owner-photo-file-input"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handlePhotoSelected}
+                  />
+                  <p className="typeCaption textMuted" style={{ marginTop: 8 }}>
+                    {photoUploading ? 'Uploading…' : profilePhotoUrl ? 'Click photo to replace' : 'Click to add a photo'}
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    saveSitterProfile()
+                  }}
+                >
+                  {profileError ? <div className="formError" style={{ marginBottom: 12 }}>{profileError}</div> : null}
+
+                  <div className="form-group">
+                    <label>Hourly rate (€)</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={sitterHourlyRate}
+                      onChange={(e) => setSitterHourlyRate(e.target.value)}
+                      placeholder="8.5"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>City</label>
+                    <input
+                      className="input"
+                      value={sitterCity}
+                      onChange={(e) => setSitterCity(e.target.value)}
+                      placeholder="e.g. Tartu"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Bio</label>
+                    <textarea
+                      value={sitterBio}
+                      onChange={(e) => setSitterBio(e.target.value)}
+                      placeholder="Tell owners about your experience…"
+                      rows="4"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Animals you care for</label>
+                    <div className="pillGrid">
+                      {['dog', 'cat', 'bird', 'rabbit', 'rodent', 'fish'].map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          className={`filterPill ${sitterTypes.has(t) ? 'on' : ''}`}
+                          onClick={() => toggleType(t)}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="checkRow">
+                      <input
+                        type="checkbox"
+                        checked={sitterHasChildren}
+                        onChange={(e) => setSitterHasChildren(e.target.checked)}
+                      />
+                      Has children at home
+                    </label>
+                    <label className="checkRow">
+                      <input
+                        type="checkbox"
+                        checked={sitterHasAnimals}
+                        onChange={(e) => setSitterHasAnimals(e.target.checked)}
+                      />
+                      Has other pets at home
+                    </label>
+                  </div>
+
+                  <Button variant="primary" type="submit" className="btnWide" disabled={profileSaving || profileLoading}>
+                    {profileSaving ? 'Saving…' : 'Save profile'}
+                  </Button>
+                </form>
               </div>
             </section>
           ) : null}
