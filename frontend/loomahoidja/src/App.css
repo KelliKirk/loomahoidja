@@ -2351,22 +2351,28 @@ button:hover {
 }
 
 .cal-nav-btn {
-  background: rgba(255, 255, 255, 0.92);
-  border: 2px solid rgba(61, 44, 59, 0.18);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   color: #3d2c3b;
+  padding: 4px 8px;
 }
 
 .cal-nav-btn:hover {
-  background: rgba(61, 44, 59, 0.1);
-  border-color: rgba(61, 44, 59, 0.3);
+  color: #52374a;
+}
+
+.cal-nav-btn:focus-visible {
+  outline: 2px solid rgba(61, 44, 59, 0.35);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 
 .cal-day.today {
@@ -2726,6 +2732,16 @@ button:hover {
   transform: none;
 }
 
+.owner-side-nav button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3dde0;
+}
+
+.owner-side-nav button:focus-visible {
+  outline: 2px solid rgba(235, 186, 185, 0.55);
+  outline-offset: 2px;
+}
+
 .owner-side-nav button span {
   width: 18px;
   color: #ecc0c3;
@@ -2849,6 +2865,16 @@ button:hover {
 
 .owner-topbar-brand > button.active {
   background: rgba(255, 255, 255, 0.12);
+}
+
+.owner-topbar-brand > button:hover:not(:disabled) {
+  background: rgba(235, 186, 185, 0.12);
+  color: #fff;
+}
+
+.owner-topbar-brand > button:focus-visible {
+  outline: 2px solid rgba(235, 186, 185, 0.7);
+  outline-offset: 2px;
 }
 
 .owner-topbar .message-tab {
