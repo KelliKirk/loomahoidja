@@ -45,6 +45,21 @@ export const FALLBACK_SITTERS = [
     reviewCount: 9,
     weekendsOk: true,
   },
+  {
+    id: 104,
+    userId: 204,
+    name: 'Toru Jüri',
+    city: 'Tartu',
+    hourlyRate: 9.0,
+    bio: 'Hooliv ja rahulik hoidja. Lähenen igale loomale tema tempos.',
+    animalTypes: ['dog', 'cat'],
+    photo: null,
+    hasChildren: false,
+    hasAnimals: false,
+    rating: 4.8,
+    reviewCount: 12,
+    weekendsOk: true,
+  },
 ]
 
 export function fallbackSitterById(id) {

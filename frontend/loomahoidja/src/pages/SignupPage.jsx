@@ -13,13 +13,15 @@ export default function SignupPage() {
   async function handleRegister(payload) {
     setErr('')
     try {
-      await register({
+      const u = await register({
         email: payload.email,
         password: payload.password,
         fullName: payload.fullName,
         role: payload.role || role,
       })
-      nav('/')
+      if (u?.role === 'sitter') nav('/dashboard/sitter')
+      else if (u?.role === 'owner') nav('/dashboard/owner')
+      else nav('/')
     } catch (er) {
       setErr(er?.message || 'Registration failed')
     }

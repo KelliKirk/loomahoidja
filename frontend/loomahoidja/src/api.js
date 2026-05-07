@@ -7,8 +7,17 @@ async function readJson(res) {
   }
 }
 
+function normalizeApiBaseUrl(inputBaseUrl) {
+  const raw = String(inputBaseUrl || '').trim().replace(/\/+$/, '');
+  if (!raw) return '';
+  // If user stored origin only (e.g. http://localhost:3001), assume API lives under /api
+  if (!/\/api(\/|$)/i.test(raw)) return `${raw}/api`;
+  return raw;
+}
+
 export async function apiJson({ baseUrl, path, method = 'GET', token, body }) {
-  const res = await fetch(`${baseUrl}${path}`, {
+  const b = normalizeApiBaseUrl(baseUrl);
+  const res = await fetch(`${b}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -26,7 +35,8 @@ export async function apiJson({ baseUrl, path, method = 'GET', token, body }) {
 }
 
 export async function apiForm({ baseUrl, path, method = 'POST', token, formData }) {
-  const res = await fetch(`${baseUrl}${path}`, {
+  const b = normalizeApiBaseUrl(baseUrl);
+  const res = await fetch(`${b}${path}`, {
     method,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

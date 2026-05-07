@@ -123,7 +123,7 @@ export default function HomePage({
   const loadMoreSentinelRef = useRef(null)
 
   const baseList = useMemo(() => {
-    if (!hasFetched || rawSitters.length === 0) {
+    if (!hasFetched) {
       return sampleSitters
     }
     return rawSitters.map((s, i) => normalizeApiSitter(s, apiOrigin, i))

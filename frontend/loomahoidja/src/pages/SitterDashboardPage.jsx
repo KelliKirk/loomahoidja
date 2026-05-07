@@ -17,12 +17,6 @@ import { apiForm, apiJson } from '../api'
 import { coordsForCity, osmEmbedUrl } from '../lib/geo'
 import { initialsFromFullName } from '../lib/userDisplay'
 
-const INITIAL_REQUESTS = [
-  { owner: 'Peeter P.', pet: 'Rex', dates: '14.04–17.04', price: '25.50 €' },
-  { owner: 'Darude S.', pet: 'Küpsis', dates: '20.04–22.04', price: '30.00 €' },
-  { owner: 'Paul E.', pet: 'Pitsu', dates: '01.05–03.05', price: '22.50 €' },
-]
-
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -41,7 +35,8 @@ export default function SitterDashboardPage() {
   const firstName = user?.fullName?.split(' ')[0] || 'Sitter'
   const initials = useMemo(() => initialsFromFullName(user?.fullName), [user?.fullName])
   const [section, setSection] = useState('overview')
-  const unreadCount = 0
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifications, setNotifications] = useState([])
   const [myProfile, setMyProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState('')
@@ -92,6 +87,81 @@ export default function SitterDashboardPage() {
     }
   }, [apiBaseUrl, token, user?.id, user?.city])
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/notifications?unreadOnly=true', token })
+        if (!cancelled) setUnreadCount(Number(data?.count) || 0)
+      } catch {
+        if (!cancelled) setUnreadCount(0)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      if (section !== 'messages') return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/notifications', token })
+        const rows = Array.isArray(data?.notifications) ? data.notifications : []
+        if (!cancelled) setNotifications(rows)
+      } catch {
+        if (!cancelled) setNotifications([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  const markNotificationsRead = async (ids) => {
+    if (!token?.trim()) return
+    const list = Array.isArray(ids) ? ids.filter(Boolean) : []
+    if (!list.length) return
+    try {
+      await apiJson({ baseUrl: apiBaseUrl, path: '/notifications/read', method: 'POST', token, body: { ids: list } })
+      setNotifications((prev) =>
+        prev.map((n) => (list.includes(n.id) ? { ...n, readAt: n.readAt || new Date().toISOString() } : n)),
+      )
+      setUnreadCount((c) => Math.max(0, c - list.length))
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const notificationLabel = (n) => {
+    let payload = null
+    try {
+      payload = n?.payload ? JSON.parse(n.payload) : null
+    } catch {
+      payload = null
+    }
+    if (n?.type === 'booking_request') {
+      const who = payload?.ownerName || 'Owner'
+      const pet = payload?.petName || 'pet'
+      return `${who} requested booking for ${pet}`
+    }
+    if (n?.type === 'booking_response') {
+      return `Booking ${payload?.status || 'update'}`
+    }
+    return n?.type || 'Notification'
+  }
+
+  const handleNotificationClick = async (n) => {
+    if (!n) return
+    await markNotificationsRead([n.id])
+    if (n.type === 'booking_request') {
+      setSection('bookings')
+    }
+  }
+
   async function saveSitterProfile({ withPhotoFile = null } = {}) {
     if (!token?.trim() || !user?.id) return
     setProfileSaving(true)
@@ -141,7 +211,7 @@ export default function SitterDashboardPage() {
     })
   }
 
-  const [bookingRequests, setBookingRequests] = useState(INITIAL_REQUESTS)
+  const [bookingRequests, setBookingRequests] = useState([])
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
@@ -154,8 +224,35 @@ export default function SitterDashboardPage() {
     if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0) }
     else setCalMonth(m => m + 1)
   }
-  const handleAccept = (index) => setBookingRequests(r => r.filter((_, i) => i !== index))
-  const handleDecline = (index) => setBookingRequests(r => r.filter((_, i) => i !== index))
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/bookings/requests/me?status=pending', token })
+        const rows = Array.isArray(data?.requests) ? data.requests : []
+        if (!cancelled) setBookingRequests(rows)
+      } catch {
+        if (!cancelled) setBookingRequests([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  const respondToRequest = async (reqId, status) => {
+    if (!token?.trim()) return
+    await apiJson({
+      baseUrl: apiBaseUrl,
+      path: `/bookings/requests/${reqId}/respond`,
+      method: 'POST',
+      token,
+      body: { status },
+    })
+    setBookingRequests((prev) => prev.filter((r) => Number(r.id) !== Number(reqId)))
+    setUnreadCount((c) => Math.max(0, c - 1))
+  }
 
   return (
     <section className="owner-dashboard owner-dashboard--with-topbar">
@@ -547,17 +644,19 @@ export default function SitterDashboardPage() {
                     <span style={{ gridColumn: '1 / -1', padding: '10px 0' }}>No pending requests 🎉</span>
                   </div>
                 )}
-                {bookingRequests.map((r, index) => (
-                  <div key={index} className="owner-table-row">
-                    <span>{r.owner}</span>
-                    <span>{r.pet}</span>
-                    <span>{r.dates}</span>
-                    <span>{r.price}</span>
+                {bookingRequests.map((r) => (
+                  <div key={r.id} className="owner-table-row">
+                    <span>{r.Owner?.fullName || r.Owner?.email || 'Owner'}</span>
+                    <span>{r.Animal?.name || 'Pet'}</span>
+                    <span>
+                      {String(r.startDate || '')} – {String(r.endDate || '')}
+                    </span>
+                    <span>—</span>
                     <div className="owner-table-actions" aria-label="Request actions">
-                      <button type="button" className="btn-accept" onClick={() => handleAccept(index)}>
+                      <button type="button" className="btn-accept" onClick={() => respondToRequest(r.id, 'accepted')}>
                         Accept
                       </button>
-                      <button type="button" className="btn-decline" onClick={() => handleDecline(index)}>
+                      <button type="button" className="btn-decline" onClick={() => respondToRequest(r.id, 'declined')}>
                         Decline
                       </button>
                     </div>
@@ -645,8 +744,48 @@ export default function SitterDashboardPage() {
             <section className="owner-card owner-chat-card">
               <div className="owner-chat-header">
                 <h2>Messages</h2>
-                <p className="owner-chat-subtitle typeBodySmall textMuted">No messages yet.</p>
+                <p className="owner-chat-subtitle typeBodySmall textMuted">Notifications and booking updates.</p>
               </div>
+              {notifications.length === 0 ? (
+                <p className="typeBodySmall textMuted" style={{ margin: 0 }}>
+                  No notifications yet.
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {notifications.slice(0, 20).map((n) => {
+                    const isUnread = !n.readAt
+                    return (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => handleNotificationClick(n)}
+                        style={{
+                          textAlign: 'left',
+                          width: '100%',
+                          borderRadius: 14,
+                          padding: '12px 14px',
+                          background: isUnread ? 'rgba(151, 177, 166, 0.18)' : 'rgba(255, 255, 255, 0.85)',
+                          border: '1px solid rgba(86, 68, 81, 0.12)',
+                          color: '#34344a',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            gap: 12,
+                            alignItems: 'baseline',
+                          }}
+                        >
+                          <strong className="typeBodySmall">{notificationLabel(n)}</strong>
+                          <span className="typeCaption textMuted">{isUnread ? 'New' : ''}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </section>
           ) : null}
           </div>

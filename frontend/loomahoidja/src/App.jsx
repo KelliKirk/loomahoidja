@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { apiJson } from './api'
@@ -57,6 +57,21 @@ function HomeRoute() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const apiOrigin = apiOriginFromBase(apiBaseUrl)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('loom_sitters_cache_v1')
+      if (!raw) return
+      const cached = JSON.parse(raw)
+      if (Array.isArray(cached) && cached.length) {
+        setRawSitters(cached)
+        setHasFetched(true)
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
   const applySearch = useCallback(async () => {
     setLoading(true)
     try {
@@ -64,6 +79,11 @@ function HomeRoute() {
       const list = Array.isArray(data) ? data : data?.sitters || []
       setRawSitters(list)
       setHasFetched(true)
+      try {
+        localStorage.setItem('loom_sitters_cache_v1', JSON.stringify(list))
+      } catch {
+        /* ignore */
+      }
     } catch {
       setRawSitters([])
       setHasFetched(true)

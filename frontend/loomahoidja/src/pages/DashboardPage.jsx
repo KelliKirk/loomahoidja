@@ -23,7 +23,7 @@ import { initialsFromFullName } from '../lib/userDisplay'
 const INBOX_STORAGE_KEY = 'loom_owner_inbox_v1'
 const CHAT_STORAGE_KEY = 'loom_owner_chat_v1'
 
-const bookings = [
+const demoBookings = [
   { pet: 'Rex', sitter: 'Leelo Lameuss', dates: 'Apr 14-Apr 17', price: '25.50 EUR', status: 'Confirmed' },
   { pet: 'Miisu', sitter: 'Rasmus Sigma', dates: 'May 15-May 22', price: '70.00 EUR', status: 'Pending' },
   { pet: 'Semu', sitter: 'Sander Skibidi-Saabas', dates: 'Feb 14-Feb 15', price: '14.00 EUR', status: 'Completed' },
@@ -114,6 +114,7 @@ function DashboardPage({
   token,
   availableSitterCount = 0,
   onUserUpdated,
+  bookingRequests = null,
 }) {
   const [section, setSection] = useState('overview')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -129,6 +130,9 @@ function DashboardPage({
   const [inbox, setInbox] = useState(loadInboxFromStorage)
   const [chatThread, setChatThread] = useState(loadChatFromStorage)
   const [chatInput, setChatInput] = useState('')
+  const [notifications, setNotifications] = useState([])
+  const [ownerBookings, setOwnerBookings] = useState([])
+  const [ownerUnreadNotifCount, setOwnerUnreadNotifCount] = useState(0)
   const [photoUploadError, setPhotoUploadError] = useState('')
   const [photoUploading, setPhotoUploading] = useState(false)
   const ownerPhotoInputRef = useRef(null)
@@ -153,6 +157,93 @@ function DashboardPage({
       /* ignore */
     }
   }, [chatThread])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/notifications?unreadOnly=true', token })
+        if (!cancelled) setOwnerUnreadNotifCount(Number(data?.count) || 0)
+      } catch {
+        if (!cancelled) setOwnerUnreadNotifCount(0)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      if (section !== 'overview' && section !== 'bookings') return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/bookings/requests/owner?status=accepted', token })
+        const rows = Array.isArray(data?.requests) ? data.requests : []
+        if (!cancelled) setOwnerBookings(rows)
+      } catch {
+        if (!cancelled) setOwnerBookings([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      if (section !== 'messages') return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/notifications', token })
+        const rows = Array.isArray(data?.notifications) ? data.notifications : []
+        if (!cancelled) setNotifications(rows)
+      } catch {
+        if (!cancelled) setNotifications([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, section])
+
+  const markNotificationsRead = useCallback(
+    async (ids) => {
+      if (!token?.trim()) return
+      const list = Array.isArray(ids) ? ids.filter(Boolean) : []
+      if (!list.length) return
+      try {
+        await apiJson({ baseUrl: apiBaseUrl, path: '/notifications/read', method: 'POST', token, body: { ids: list } })
+        setNotifications((prev) =>
+          prev.map((n) => (list.includes(n.id) ? { ...n, readAt: n.readAt || new Date().toISOString() } : n)),
+        )
+      } catch {
+        /* ignore */
+      }
+    },
+    [apiBaseUrl, token],
+  )
+
+  function notificationLabel(n) {
+    let payload = null
+    try {
+      payload = n?.payload ? JSON.parse(n.payload) : null
+    } catch {
+      payload = null
+    }
+    if (n?.type === 'booking_response') {
+      const st = payload?.status || 'updated'
+      const pet = payload?.petName || 'your pet'
+      return `Booking ${st} for ${pet}`
+    }
+    if (n?.type === 'booking_request') {
+      return 'New booking request'
+    }
+    return n?.type || 'Notification'
+  }
 
   const unreadCount = useMemo(() => inbox.filter((m) => !m.read).length, [inbox])
 
@@ -665,8 +756,8 @@ function DashboardPage({
                     <FontAwesomeIcon icon={faEnvelopeOpenText} />
                   </span>
                   <span className="owner-stat-label">Unread messages</span>
-                  <strong>{unreadCount}</strong>
-                  <small>from sitters</small>
+                  <strong>{ownerUnreadNotifCount}</strong>
+                  <small>updates</small>
                 </article>
               </div>
 
@@ -681,18 +772,39 @@ function DashboardPage({
                     <span>Status</span>
                     <span></span>
                   </div>
-                  {bookings.map((booking) => (
-                    <div className="owner-table-row" key={`${booking.pet}-${booking.dates}`}>
-                      <span>{booking.pet}</span>
-                      <span>{booking.sitter}</span>
-                      <span>{booking.dates}</span>
-                      <span>{booking.price}</span>
-                      <span>
-                        <mark className={`status-pill ${booking.status.toLowerCase()}`}>{booking.status}</mark>
-                      </span>
-                      <button type="button">{booking.status === 'Completed' ? 'Review' : 'View'}</button>
-                    </div>
-                  ))}
+                  {(ownerBookings.length ? ownerBookings : demoBookings).map((booking) => {
+                    if (booking?.Animal) {
+                      const sitterName =
+                        booking?.SitterProfile?.User?.fullName ||
+                        booking?.SitterProfile?.User?.email ||
+                        'Sitter'
+                      const dates = `${booking.startDate} – ${booking.endDate}`
+                      return (
+                        <div className="owner-table-row" key={`br-${booking.id}`}>
+                          <span>{booking.Animal?.name || 'Pet'}</span>
+                          <span>{sitterName}</span>
+                          <span>{dates}</span>
+                          <span>—</span>
+                          <span>
+                            <mark className="status-pill confirmed">Accepted</mark>
+                          </span>
+                          <button type="button">View</button>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div className="owner-table-row" key={`${booking.pet}-${booking.dates}`}>
+                        <span>{booking.pet}</span>
+                        <span>{booking.sitter}</span>
+                        <span>{booking.dates}</span>
+                        <span>{booking.price}</span>
+                        <span>
+                          <mark className={`status-pill ${booking.status.toLowerCase()}`}>{booking.status}</mark>
+                        </span>
+                        <button type="button">{booking.status === 'Completed' ? 'Review' : 'View'}</button>
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
 
@@ -808,18 +920,39 @@ function DashboardPage({
                   <span>Status</span>
                   <span></span>
                 </div>
-                {bookings.map((booking) => (
-                  <div className="owner-table-row" key={`${booking.pet}-${booking.dates}`}>
-                    <span>{booking.pet}</span>
-                    <span>{booking.sitter}</span>
-                    <span>{booking.dates}</span>
-                    <span>{booking.price}</span>
-                    <span>
-                      <mark className={`status-pill ${booking.status.toLowerCase()}`}>{booking.status}</mark>
-                    </span>
-                    <button type="button">{booking.status === 'Completed' ? 'Review' : 'View'}</button>
-                  </div>
-                ))}
+                {(ownerBookings.length ? ownerBookings : demoBookings).map((booking) => {
+                  if (booking?.Animal) {
+                    const sitterName =
+                      booking?.SitterProfile?.User?.fullName ||
+                      booking?.SitterProfile?.User?.email ||
+                      'Sitter'
+                    const dates = `${booking.startDate} – ${booking.endDate}`
+                    return (
+                      <div className="owner-table-row" key={`br-${booking.id}`}>
+                        <span>{booking.Animal?.name || 'Pet'}</span>
+                        <span>{sitterName}</span>
+                        <span>{dates}</span>
+                        <span>—</span>
+                        <span>
+                          <mark className="status-pill confirmed">Accepted</mark>
+                        </span>
+                        <button type="button">View</button>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="owner-table-row" key={`${booking.pet}-${booking.dates}`}>
+                      <span>{booking.pet}</span>
+                      <span>{booking.sitter}</span>
+                      <span>{booking.dates}</span>
+                      <span>{booking.price}</span>
+                      <span>
+                        <mark className={`status-pill ${booking.status.toLowerCase()}`}>{booking.status}</mark>
+                      </span>
+                      <button type="button">{booking.status === 'Completed' ? 'Review' : 'View'}</button>
+                    </div>
+                  )
+                })}
               </div>
             </section>
           )}
@@ -832,6 +965,35 @@ function DashboardPage({
                   Mock chat with Leelo L. — real-time messaging will use websockets later.
                 </p>
               </div>
+              {notifications.length ? (
+                <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+                  {notifications.slice(0, 10).map((n) => {
+                    const isUnread = !n.readAt
+                    return (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => markNotificationsRead([n.id])}
+                        style={{
+                          textAlign: 'left',
+                          width: '100%',
+                          borderRadius: 14,
+                          padding: '12px 14px',
+                          background: isUnread ? 'rgba(151, 177, 166, 0.18)' : 'rgba(255, 255, 255, 0.85)',
+                          border: '1px solid rgba(86, 68, 81, 0.12)',
+                          color: '#34344a',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
+                          <strong className="typeBodySmall">{notificationLabel(n)}</strong>
+                          <span className="typeCaption textMuted">{isUnread ? 'New' : ''}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : null}
               {unreadCount > 0 ? (
                 <p className="owner-inbox-hint">
                   {unreadCount} unread notification{unreadCount === 1 ? '' : 's'} in the overview list — open a row

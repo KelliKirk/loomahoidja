@@ -9,6 +9,7 @@ const ConversationParticipant = require('./ConversationParticipant');
 const Message = require('./Message');
 const MessageAttachment = require('./MessageAttachment');
 const Notification = require('./Notification');
+const BookingRequest = require('./BookingRequest');
 
 User.hasOne(SitterProfile, { foreignKey: 'userId', onDelete: 'CASCADE' });
 SitterProfile.belongsTo(User, { foreignKey: 'userId' });
@@ -31,6 +32,15 @@ Conversation.belongsToMany(User, { through: ConversationParticipant, foreignKey:
 User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Notification.belongsTo(User, { foreignKey: 'userId' });
 
+User.hasMany(BookingRequest, { foreignKey: 'ownerId', onDelete: 'CASCADE' });
+BookingRequest.belongsTo(User, { foreignKey: 'ownerId', as: 'Owner' });
+
+SitterProfile.hasMany(BookingRequest, { foreignKey: 'sitterProfileId', onDelete: 'CASCADE' });
+BookingRequest.belongsTo(SitterProfile, { foreignKey: 'sitterProfileId', as: 'SitterProfile' });
+
+Animal.hasMany(BookingRequest, { foreignKey: 'animalId', onDelete: 'CASCADE' });
+BookingRequest.belongsTo(Animal, { foreignKey: 'animalId', as: 'Animal' });
+
 module.exports = {
   sequelize,
   User,
@@ -42,4 +52,5 @@ module.exports = {
   Message,
   MessageAttachment,
   Notification,
+  BookingRequest,
 };

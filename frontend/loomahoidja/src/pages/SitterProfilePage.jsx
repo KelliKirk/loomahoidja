@@ -6,6 +6,7 @@ import Field from '../components/Field'
 import CalendarRangePicker from '../components/CalendarRangePicker'
 import Loader from '../components/Loader'
 import { useAuth } from '../auth/AuthContext'
+import { apiJson } from '../api'
 import { fetchSitter } from '../lib/sittersApi'
 import { fallbackSitterById } from '../lib/fallbackSitters'
 import { coordsForCity, osmEmbedUrl } from '../lib/geo'
@@ -17,7 +18,6 @@ import {
   subscribeBooking,
   tabSessionId,
 } from '../lib/bookingHold'
-import { mergeUnavailableIntoSet } from '../lib/mockMeta'
 import { eachDayInRange } from '../lib/dateRange'
 import { SITTER_UI_META } from '../lib/mockMeta'
 
@@ -38,7 +38,7 @@ function loadDemoPets() {
 
 export default function SitterProfilePage() {
   const { id } = useParams()
-  const { apiBaseUrl } = useAuth()
+  const { apiBaseUrl, token, user } = useAuth()
   const [sitter, setSitter] = useState(null)
   const [loading, setLoading] = useState(true)
   const [yearMonth, setYearMonth] = useState(() => {
@@ -47,9 +47,10 @@ export default function SitterProfilePage() {
   })
   const [range, setRange] = useState({ start: null, end: null })
   const [toast, setToast] = useState('')
-  const [pets] = useState(() => loadDemoPets())
-  const [petId, setPetId] = useState(1)
+  const [pets, setPets] = useState(() => loadDemoPets())
+  const [petId, setPetId] = useState(() => loadDemoPets()[0]?.id ?? 1)
   const [holdTick, setHoldTick] = useState(0)
+  const [acceptedRanges, setAcceptedRanges] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -70,11 +71,65 @@ export default function SitterProfilePage() {
     }
   }, [apiBaseUrl, id])
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!token?.trim()) return
+      if (user?.role && user.role !== 'owner') return
+      try {
+        const data = await apiJson({ baseUrl: apiBaseUrl, path: '/animals', token })
+        const rows = Array.isArray(data?.animals) ? data.animals : []
+        if (!rows.length) return
+        const nextPets = rows.map((a) => ({
+          id: a.id,
+          name: a.name || a.animalName || 'Pet',
+          type: a.animalType || a.type || 'pet',
+        }))
+        if (!cancelled) {
+          setPets(nextPets)
+          setPetId((prev) => (nextPets.some((p) => p.id === prev) ? prev : nextPets[0].id))
+        }
+      } catch {
+        // Keep demo pets if API fails
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, token, user?.role])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!sitter?.id) return
+      try {
+        const data = await apiJson({
+          baseUrl: apiBaseUrl,
+          path: `/bookings/unavailable/${sitter.id}`,
+        })
+        const ranges = Array.isArray(data?.ranges) ? data.ranges : []
+        if (!cancelled) setAcceptedRanges(ranges)
+      } catch {
+        if (!cancelled) setAcceptedRanges([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl, sitter?.id])
+
   const disabledSet = useMemo(() => {
     if (!sitter) return new Set()
     const blocked = getBlockedDateSet(sitter.id, tabSessionId)
-    return mergeUnavailableIntoSet(sitter.id, blocked)
-  }, [sitter, holdTick]) // eslint-disable-line react-hooks/exhaustive-deps -- holdTick invalidates when booking-hold bus updates
+    const next = new Set(blocked)
+    for (const r of acceptedRanges) {
+      const start = r?.startDate
+      const end = r?.endDate
+      if (!start || !end) continue
+      for (const d of eachDayInRange(start, end)) next.add(d)
+    }
+    return next
+  }, [sitter, holdTick, acceptedRanges]) // eslint-disable-line react-hooks/exhaustive-deps -- holdTick invalidates when booking-hold bus updates
 
   useEffect(() => {
     return subscribeBooking(() => setHoldTick((t) => t + 1))
@@ -272,13 +327,19 @@ export default function SitterProfilePage() {
                 }
               />
               <Field label="Your pet">
-                <select className="input" value={petId} onChange={(e) => setPetId(Number(e.target.value))}>
-                  {pets.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.type})
-                    </option>
-                  ))}
-                </select>
+                {pets.length === 0 ? (
+                  <p className="typeBodySmall textMuted" style={{ margin: 0 }}>
+                    No pets found on your account. Add one in your owner dashboard first.
+                  </p>
+                ) : (
+                  <select className="input" value={petId} onChange={(e) => setPetId(Number(e.target.value))}>
+                    {pets.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.type})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </Field>
               <p className="typeBody">
                 {days ? `${days} days × ${Number(sitter.hourlyRate).toFixed(2)} € = ${total.toFixed(2)} €` : '—'}
@@ -286,15 +347,39 @@ export default function SitterProfilePage() {
               <Button
                 variant="primary"
                 className="btnWide"
-                disabled={!range.start || !range.end}
+                disabled={!range.start || !range.end || pets.length === 0 || !petId}
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (!range.start || !range.end) return
-                  addConfirmedBlock(sitter.id, range.start, range.end)
-                  releaseHold(sitter.id, tabSessionId)
-                  setRange({ start: null, end: null })
-                  setToast('Booking request sent (demo). These dates are now locked for others.')
-                  setHoldTick((x) => x + 1)
+                  if (!token?.trim()) {
+                    setToast('Please log in to request a booking.')
+                    return
+                  }
+                  if (!petId) {
+                    setToast('Please select a pet for this booking.')
+                    return
+                  }
+                  try {
+                    await apiJson({
+                      baseUrl: apiBaseUrl,
+                      path: '/bookings/requests',
+                      method: 'POST',
+                      token,
+                      body: {
+                        sitterProfileId: sitter.id,
+                        animalId: petId,
+                        startDate: range.start,
+                        endDate: range.end,
+                      },
+                    })
+                    releaseHold(sitter.id, tabSessionId)
+                    setRange({ start: null, end: null })
+                    setToast('Booking request sent.')
+                    setHoldTick((x) => x + 1)
+                  } catch (e) {
+                    releaseHold(sitter.id, tabSessionId)
+                    setToast(e?.message || 'Failed to send booking request.')
+                  }
                 }}
               >
                 Request booking
@@ -314,7 +399,7 @@ export default function SitterProfilePage() {
               <p className="typeBodySmall textMuted">
                 Approximate location — exact address is shared after booking.
               </p>
-              <div className="mapFrame">
+              <div className="mapFrame mapFrame--scrollSafe">
                 <iframe title="Map" src={mapUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
               </div>
             </section>

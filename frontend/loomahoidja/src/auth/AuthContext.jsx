@@ -63,8 +63,14 @@ export function AuthProvider({ children }) {
           body: { email, password },
         })
         setSession(data.token, data.user)
-        return
-      } catch {
+        return data.user
+      } catch (e) {
+        const status = Number(String(e?.message || '').split(' ')[0])
+        // Only fall back to demo tokens when the endpoint is missing/unavailable.
+        // If credentials are wrong (401) we should NOT silently log in as demo user.
+        if (Number.isFinite(status) && status !== 404 && status !== 501) {
+          throw e
+        }
         const demoId = role === 'sitter' ? 2 : 1
         const data = await apiJson({
           baseUrl: apiBaseUrl,
@@ -73,6 +79,7 @@ export function AuthProvider({ children }) {
           body: { email, role, userId: demoId },
         })
         setSession(data.token, data.user)
+        return data.user
       }
     },
     [apiBaseUrl, setSession],
@@ -119,8 +126,12 @@ export function AuthProvider({ children }) {
         })
         setSession(data.token, data.user)
         localStorage.setItem(LS_PROFILE, JSON.stringify({ fullName, email, role }))
-        return
-      } catch {
+        return data.user
+      } catch (e) {
+        const status = Number(String(e?.message || '').split(' ')[0])
+        if (Number.isFinite(status) && status !== 404 && status !== 501) {
+          throw e
+        }
         const data = await apiJson({
           baseUrl: apiBaseUrl,
           path: '/auth/test-token',
@@ -129,6 +140,7 @@ export function AuthProvider({ children }) {
         })
         setSession(data.token, { ...data.user, fullName })
         localStorage.setItem(LS_PROFILE, JSON.stringify({ fullName, email, role }))
+        return { ...data.user, fullName }
       }
     },
     [apiBaseUrl, setSession],

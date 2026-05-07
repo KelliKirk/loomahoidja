@@ -12,8 +12,10 @@ export default function LoginPage() {
   async function handleLogin(payload) {
     setErr('')
     try {
-      await login({ email: payload.email, password: payload.password, role: 'owner' })
-      nav('/')
+      const u = await login({ email: payload.email, password: payload.password, role: 'owner' })
+      if (u?.role === 'sitter') nav('/dashboard/sitter')
+      else if (u?.role === 'owner') nav('/dashboard/owner')
+      else nav('/')
     } catch (er) {
       setErr(er?.message || 'Login failed')
     }
