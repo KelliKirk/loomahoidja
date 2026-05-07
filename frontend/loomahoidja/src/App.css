@@ -94,6 +94,15 @@ button {
   min-height: calc(100svh - var(--home-header-offset));
 }
 
+.app-main--profile {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  justify-content: initial;
+}
+
 .home-page {
   width: 100%;
   max-width: none;
@@ -1003,7 +1012,16 @@ button {
 .authHiFiBrand {
   display: flex;
   align-items: center;
-  line-height: 0;
+  gap: 10px;
+  line-height: 1;
+}
+
+.authHiFiBrandName {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1;
 }
 
 .authHiFiLogo {
@@ -4490,7 +4508,10 @@ button:hover {
 }
 
 .sitter-profile-page {
-  width: min(1120px, calc(100% - 40px));
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #f8f3f2;
 }
 
 .public-profile-hero-strip {

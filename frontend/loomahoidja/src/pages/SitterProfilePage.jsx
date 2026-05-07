@@ -163,9 +163,9 @@ export default function SitterProfilePage() {
   }
 
   return (
-    <main className="pageMain sitter-profile-page">
-      <div className="public-profile-hero-strip">
-        <div className="public-profile-hero-inner">
+    <main className="sitter-profile-page">
+      <div className="owner-profile-hero-strip">
+        <div className="owner-profile-hero-strip-inner">
           <div className="public-profile-hero-layout">
             <Avatar src={sitter.photo} name={sitter.name} size={96} />
             <div className="public-profile-hero-text">
@@ -197,16 +197,17 @@ export default function SitterProfilePage() {
         </div>
       </div>
 
-      <div className="public-profile-page-grid">
-        <div className="public-profile-page-primary">
-          <section className="public-profile-section">
-            <h2 className="public-profile-section-title">About</h2>
+      <div className="owner-profile-page-grid">
+        <div className="owner-profile-page-primary">
+          <div className="owner-profile-main-flow">
+          <section className="owner-profile-section">
+            <h2 className="owner-profile-section-title">About</h2>
             <p className="typeBody">{displayBio}</p>
           </section>
 
-          <section className="public-profile-section">
-            <h2 className="public-profile-section-title">Animals I care for</h2>
-            <div className="tagRow">
+          <section className="owner-profile-section">
+            <h2 className="owner-profile-section-title">Animals I care for</h2>
+            <div className="tagRow owner-profile-tag-row">
               {displayTypes.map((t) => (
                 <span key={`care-${t}`} className="tag">
                   {t}
@@ -215,8 +216,8 @@ export default function SitterProfilePage() {
             </div>
           </section>
 
-          <section className="public-profile-section">
-            <h2 className="public-profile-section-title">Home details</h2>
+          <section className="owner-profile-section">
+            <h2 className="owner-profile-section-title">Home details</h2>
             <ul className="typeBody listPlain">
               <li>{displayHasChildren ? '✓' : '✗'} Has children at home</li>
               <li>{displayHasAnimals ? '✓' : '✗'} Has other pets at home</li>
@@ -224,8 +225,8 @@ export default function SitterProfilePage() {
             </ul>
           </section>
 
-          <section className="public-profile-section">
-            <h2 className="public-profile-section-title">Reviews</h2>
+          <section className="owner-profile-section">
+            <h2 className="owner-profile-section-title">Reviews</h2>
             {reviews.length === 0 ? (
               <p className="typeBody textMuted">No reviews yet.</p>
             ) : (
@@ -244,12 +245,13 @@ export default function SitterProfilePage() {
               </div>
             )}
           </section>
+          </div>
         </div>
 
-        <aside className="public-profile-rail" aria-label="Booking sidebar">
-          <div className="public-profile-rail-inner">
-            <section className="public-profile-rail-card">
-              <h2 className="typeH3 public-profile-rail-title">Book {sitter.name.split(' ')[0]}</h2>
+        <aside className="owner-profile-rail" aria-label="Booking sidebar">
+          <div className="owner-profile-rail-inner">
+            <section className="owner-profile-rail-card">
+              <h2 className="typeH3 owner-profile-rail-card-title">Book {sitter.name.split(' ')[0]}</h2>
               {toast ? <div className="formError">{toast}</div> : null}
               <Field label="Month">
                 <input
@@ -299,16 +301,16 @@ export default function SitterProfilePage() {
               </Button>
             </section>
 
-            <section className="public-profile-rail-card">
-              <h2 className="typeH3 public-profile-rail-title">Availability</h2>
+            <section className="owner-profile-rail-card">
+              <h2 className="typeH3 owner-profile-rail-card-title">Availability</h2>
               <p className="typeCaption legendRow">
                 <span className="swatch swatchFree" /> Available{' '}
                 <span className="swatch swatchBusy" /> Busy / not selectable
               </p>
             </section>
 
-            <section className="public-profile-rail-card">
-              <h2 className="typeH3 public-profile-rail-title">Location</h2>
+            <section className="owner-profile-rail-card">
+              <h2 className="typeH3 owner-profile-rail-card-title">Location</h2>
               <p className="typeBodySmall textMuted">
                 Approximate location — exact address is shared after booking.
               </p>

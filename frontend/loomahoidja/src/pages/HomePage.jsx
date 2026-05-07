@@ -70,10 +70,14 @@ function normalizeApiSitter(sitter, apiOrigin, index) {
   const types = formatTypesFromApi(sitter)
   const rawTypes = rawTypesFromApi(sitter)
   const ratingNum = 4.7 + ((Number(sitter.id) || index) % 4) * 0.1
+  const city = sitter.city || sitter.User?.city || '—'
   return {
     id: sitter.id,
     name: sitter.User?.fullName || 'Sitter',
-    city: sitter.city || sitter.User?.city || '—',
+    city,
+    cityKey: String(city || '')
+      .trim()
+      .toLowerCase(),
     rate: sitter.hourlyRate ?? '10',
     bio: sitter.bio || '',
     types,
@@ -106,10 +110,11 @@ export default function HomePage({
   onApplySearch,
   onSitterClick,
 }) {
-  const [hourly, setHourly] = useState(15)
-  const [conditions, setConditions] = useState({ hasChildren: true, hasPets: false, weekends: false })
-  const [selectedCities, setSelectedCities] = useState(() => new Set(['Tallinn', 'Tartu']))
-  const [animalTypes, setAnimalTypes] = useState(() => new Set(['dog', 'cat']))
+  // Default to "show all" so name search never gets blocked.
+  const [hourly, setHourly] = useState(20)
+  const [conditions, setConditions] = useState({ hasChildren: false, hasPets: false, weekends: false })
+  const [selectedCities, setSelectedCities] = useState(() => new Set())
+  const [animalTypes, setAnimalTypes] = useState(() => new Set())
   const [sortBy, setSortBy] = useState('rating-desc')
   const [visibleCount, setVisibleCount] = useState(6)
   const [lazyLoading, setLazyLoading] = useState(false)
@@ -140,7 +145,12 @@ export default function HomePage({
       if (conditions.hasChildren && !s.hasChildren) return false
       if (conditions.hasPets && !s.hasAnimals) return false
       if (conditions.weekends && !s.weekendsOk) return false
-      if (selectedCities.size > 0 && !selectedCities.has(s.city)) return false
+      if (selectedCities.size > 0) {
+        const key = String(s.cityKey || s.city || '')
+          .trim()
+          .toLowerCase()
+        if (!selectedCities.has(key)) return false
+      }
       return true
     })
 
@@ -191,10 +201,13 @@ export default function HomePage({
   }
 
   function toggleCity(city) {
+    const key = String(city || '')
+      .trim()
+      .toLowerCase()
     setSelectedCities((prev) => {
       const next = new Set(prev)
-      if (next.has(city)) next.delete(city)
-      else next.add(city)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
       return next
     })
   }
@@ -316,7 +329,7 @@ export default function HomePage({
                   <button
                     key={city}
                     type="button"
-                    className={`chip ${selectedCities.has(city) ? 'active' : ''}`}
+                    className={`chip ${selectedCities.has(city.toLowerCase()) ? 'active' : ''}`}
                     onClick={() => toggleCity(city)}
                   >
                     {city}

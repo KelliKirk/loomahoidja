@@ -24,6 +24,7 @@ export default function LoginPage() {
       <header className="authHiFiHeader">
         <Link to="/" className="authHiFiBrand">
           <img src={logoUrl} alt="Loomahoidja" className="authHiFiLogo" />
+          <span className="authHiFiBrandName">Loomahoidja</span>
         </Link>
       </header>
 

@@ -22,12 +22,15 @@ function ShellSuspense({ children }) {
 function MainLayout() {
   const { pathname } = useLocation()
   const isSitterFinder = pathname === '/' || pathname === '/find'
+  const isPublicProfile = pathname.startsWith('/sitter/')
   const isDashboard = pathname === '/dashboard/owner' || pathname === '/dashboard/sitter'
   const mainClass = isDashboard
     ? 'app-main dashboard-main'
     : isSitterFinder
       ? 'app-main app-main--home'
-      : 'app-main'
+      : isPublicProfile
+        ? 'app-main app-main--profile'
+        : 'app-main'
   return (
     <>
       {isDashboard ? null : <AppHeader />}

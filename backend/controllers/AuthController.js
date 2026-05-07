@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, SitterProfile } = require('../models');
 
 class AuthController {
   static async register(req, res, next) {
@@ -22,6 +22,21 @@ class AuthController {
 
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await User.create({ email, fullName, phone, city, role, passwordHash });
+
+      if (role === 'sitter') {
+        try {
+          await SitterProfile.create({
+            userId: user.id,
+            hourlyRate: 0,
+            bio: null,
+            hasAnimals: 0,
+            hasChildren: 0,
+            city,
+          });
+        } catch {
+          // If something races/duplicates, don't block registration
+        }
+      }
 
       const secret = process.env.JWT_SECRET;
       if (!secret) return res.status(500).json({ error: 'JWT_SECRET not configured in .env' });

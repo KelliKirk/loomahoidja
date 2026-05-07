@@ -30,6 +30,7 @@ export default function SignupPage() {
       <header className="authHiFiHeader">
         <Link to="/" className="authHiFiBrand">
           <img src={logoUrl} alt="Loomahoidja" className="authHiFiLogo" />
+          <span className="authHiFiBrandName">Loomahoidja</span>
         </Link>
         <Link to="/login" className="authHiFiHeaderLink">
           Log in
