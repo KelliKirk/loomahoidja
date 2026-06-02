@@ -97,79 +97,98 @@ The backend can optionally serve the built SPA from the same origin when `SERVE_
 
 ---
 
+## Demo video
+
+- **Video**: [Google Drive demo video](https://drive.google.com/file/d/1dP3eBDryvu9dG177xc21ks5Q62WG109Y/view?usp=sharing)
+
+If the Drive link is set to “Anyone with the link can view”, it will work for reviewers without sign-in.
+
+---
+
 ## Data model
 
-Entity relationships (high level). For a shareable **image** (PNG/SVG), export this diagram from your editor or use [mermaid.live](https://mermaid.live).
+Entity relationships (high level).
 
-```mermaid
-erDiagram
-  users ||--o| sitter_profiles : "has"
-  users ||--o{ animals : "owns"
-  sitter_profiles ||--o{ sitter_animal_types : "accepts"
-  users }o--o{ chat_conversations : "via participant"
-  chat_conversations ||--o{ chat_messages : "contains"
-  chat_messages ||--o{ chat_message_attachments : "has"
-  users ||--o{ chat_notifications : "receives"
-  users ||--o{ booking_requests : "owner"
-  sitter_profiles ||--o{ booking_requests : "sitter"
-  animals ||--o{ booking_requests : "for"
+```text
+CORE
+----
+users
+  - id (PK)
+  - email (UK)
+  - passwordHash
+  - fullName
+  - role (enum)
 
-  users {
-    bigint id PK
-    string email UK
-    string passwordHash
-    string fullName
-    enum role
-  }
-  sitter_profiles {
-    bigint id PK
-    bigint userId FK UK
-    decimal hourlyRate
-  }
-  sitter_animal_types {
-    bigint id PK
-    bigint sitterId FK
-    enum animalType
-  }
-  animals {
-    bigint id PK
-    bigint ownerId FK
-    string name
-    enum animalType
-  }
-  chat_conversations {
-    bigint id PK
-  }
-  chat_conversation_participants {
-    bigint id PK
-    bigint conversationId FK
-    bigint userId FK
-  }
-  chat_messages {
-    bigint id PK
-    bigint conversationId FK
-    bigint senderId FK
-    enum type
-  }
-  chat_message_attachments {
-    bigint id PK
-    bigint messageId FK
-    string path
-  }
-  chat_notifications {
-    bigint id PK
-    bigint userId FK
-    string type
-  }
-  booking_requests {
-    bigint id PK
-    bigint ownerId FK
-    bigint sitterProfileId FK
-    bigint animalId FK
-    date startDate
-    date endDate
-    enum status
-  }
+users 1 ── 0..1 sitter_profiles
+  sitter_profiles
+    - id (PK)
+    - userId (FK, UK -> users.id)
+    - hourlyRate (decimal)
+
+users 1 ── 0..* animals
+  animals
+    - id (PK)
+    - ownerId (FK -> users.id)
+    - name
+    - animalType (enum)
+
+sitter_profiles 1 ── 0..* sitter_animal_types
+  sitter_animal_types
+    - id (PK)
+    - sitterId (FK -> sitter_profiles.id)
+    - animalType (enum)
+
+BOOKINGS
+--------
+booking_requests
+  - id (PK)
+  - ownerId (FK -> users.id)
+  - sitterProfileId (FK -> sitter_profiles.id)
+  - animalId (FK -> animals.id)
+  - startDate (date)
+  - endDate (date)
+  - status (enum)
+
+users 1 ── 0..* booking_requests (as owner)
+sitter_profiles 1 ── 0..* booking_requests (as sitter)
+animals 1 ── 0..* booking_requests (as subject)
+
+MESSAGING
+---------
+chat_conversations
+  - id (PK)
+
+chat_conversation_participants
+  - id (PK)
+  - conversationId (FK -> chat_conversations.id)
+  - userId (FK -> users.id)
+
+users * ── * chat_conversations (via chat_conversation_participants)
+
+chat_messages
+  - id (PK)
+  - conversationId (FK -> chat_conversations.id)
+  - senderId (FK -> users.id)
+  - type (enum)
+
+chat_conversations 1 ── 0..* chat_messages
+users 1 ── 0..* chat_messages (as sender)
+
+chat_message_attachments
+  - id (PK)
+  - messageId (FK -> chat_messages.id)
+  - path
+
+chat_messages 1 ── 0..* chat_message_attachments
+
+NOTIFICATIONS
+-------------
+chat_notifications
+  - id (PK)
+  - userId (FK -> users.id)
+  - type
+
+users 1 ── 0..* chat_notifications
 ```
 
 ---
